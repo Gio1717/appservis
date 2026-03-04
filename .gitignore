@@ -3,4 +3,5 @@ servis.db
 uploads/
 *.db-journal
 *.db-wal
+*.db-shm
 backup_*.db
