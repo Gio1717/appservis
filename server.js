@@ -334,9 +334,8 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 
-// Statické soubory — public/ (CSS, JS, obrázky) + firebase-compat.js v rootu
+// Statické soubory — public/ (CSS, JS, obrázky, index.html, firebase-compat.js)
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static(__dirname));
 
 // Statické soubory — uploads (fotky)
 app.use('/uploads', express.static(UPLOADS_DIR));
@@ -362,10 +361,7 @@ const upload = multer({
   }
 });
 
-// ── Frontend ───────────────────────────────────────────────────────
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+// ── Frontend — express.static automaticky servíruje public/index.html ──
 
 // ── AUTH ROUTES ────────────────────────────────────────────────────
 
