@@ -1,0 +1,6 @@
+node_modules/
+servis.db
+uploads/
+*.db-journal
+*.db-wal
+backup_*.db
