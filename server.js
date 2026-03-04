@@ -82,6 +82,8 @@ db.exec(`
     sig2        TEXT NOT NULL DEFAULT '',
     sd1         TEXT NOT NULL DEFAULT '',
     sd2         TEXT NOT NULL DEFAULT '',
+    sig1name    TEXT NOT NULL DEFAULT '',
+    sig2name    TEXT NOT NULL DEFAULT '',
     photos      TEXT NOT NULL DEFAULT '[]',
     stav        TEXT NOT NULL DEFAULT 'nová',
     source      TEXT NOT NULL DEFAULT 'kancelar',

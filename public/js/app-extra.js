@@ -245,7 +245,12 @@ async function downloadZakazkaSouhrn(zakazkaId) {
   </div>
 
 </div><!-- /page -->
-\u003cscript>
+`;
+
+  // Zobraz souhrn v inline modalu
+  showSouhrn(html, z);
+}
+
 // ════════════════════════════════════════════════════════════════
 //  NOVÉ FUNKCE 7 — rychlá zakázka, opakující se zakázky,
 //  hodnocení zákazníkem, auto-check šablon
@@ -622,8 +627,6 @@ function openHodnoceniLink(zakazkaId) {
   document.head.appendChild(style);
 })();
 
-\u003c/script>
-\u003cscript>
 // ════════════════════════════════════════════════════════════════
 //  NOVÉ FUNKCE 8 — rozšířený dashboard KPI, API bridge
 // ════════════════════════════════════════════════════════════════
@@ -1300,8 +1303,6 @@ window.addEventListener('offline', () => {
   }, 1000);
 })();
 
-\u003c/script>
-\u003cscript>
 // ════════════════════════════════════════════════════════════════
 //  NOVÉ FUNKCE 9 — měsíční PDF report, výkon (lazy init),
 //                  vylepšené dashboard CSS sekce
@@ -1863,8 +1864,6 @@ function renderUnpaidTable() {
   </table>`;
 }
 
-\u003c/script>
-\u003cscript>
 // ════════════════════════════════════════════════════════════════
 //  MODUL: MÍSTA & KLIMATIZACE
 //  Hierarchie: Zakázka → Místa (150) → Klimatizace (~800)
@@ -2579,166 +2578,7 @@ document.addEventListener('keydown', e => {
   }
 });
 
-\u003c/script>
-<!-- ══ PROTOKOL WIZARD ═══════════════════════════════════════════ -->
-<div class="modal-overlay" id="protocol-wizard-modal">
-  <div class="modal-box" style="max-width:600px;max-height:90vh;overflow-y:auto">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <h3 id="pw-title">📋 Generovat protokol</h3>
-      <button onclick="closeModal('protocol-wizard-modal')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">×</button>
-    </div>
-    <input type="hidden" id="pw-zakaz-id">
-
-    <!-- Info o přiřazeném protokolu -->
-    <div id="pw-info" style="background:#eff6ff;border:1px solid #93c5fd;border-radius:8px;padding:10px 14px;font-size:12px;margin-bottom:14px;color:#1e3a5f"></div>
-
-    <!-- Výběr protokolu (přepíše zákazníkův default) -->
-    <div class="fg2" style="margin-bottom:12px">
-      <label>Typ protokolu</label>
-      <select id="pw-typ" onchange="pwOnTypChange()" style="width:100%;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:var(--card)">
-        <option value="kaufland_rocni">Kaufland — Roční revize (05A)</option>
-        <option value="kaufland_pulrocni">Kaufland — Půlroční revize (05B)</option>
-        <option value="minobr">Ministerstvo obrany — Zápis o údržbě KJ</option>
-      </select>
-    </div>
-
-    <!-- Sdílená pole -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-      <div class="fg2">
-        <label>Datum</label>
-        <input type="date" id="pw-datum">
-      </div>
-      <div class="fg2" id="pw-smlouva-row">
-        <label id="pw-smlouva-label">Číslo smlouvy</label>
-        <input id="pw-smlouva" placeholder="">
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-      <div class="fg2">
-        <label>Zahájení [hod]</label>
-        <input type="time" id="pw-zahajeni">
-      </div>
-      <div class="fg2">
-        <label>Ukončení [hod]</label>
-        <input type="time" id="pw-ukonceni">
-      </div>
-    </div>
-
-    <!-- Kaufland pole -->
-    <div id="pw-kaufland-fields">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-        <div class="fg2">
-          <label>Objekt (filiálka)</label>
-          <input id="pw-objekt" placeholder="Kaufland Praha Letňany">
-        </div>
-        <div class="fg2">
-          <label>Domovní technik</label>
-          <input id="pw-domovni-tech" placeholder="Jméno DT zákazníka">
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-        <div class="fg2">
-          <label>Typ zařízení</label>
-          <input id="pw-typ-zarizeni" placeholder="Chiller Carrier 30RB">
-        </div>
-        <div class="fg2">
-          <label>Výrobní číslo</label>
-          <input id="pw-vyrobni-cislo" placeholder="SN123456">
-        </div>
-      </div>
-      <div class="fg2" style="margin-bottom:12px">
-        <label>Rok výroby</label>
-        <input id="pw-rok-vyroby" placeholder="2018" style="max-width:120px">
-      </div>
-
-      <!-- Sekce A — Provozní připravenost -->
-      <div style="background:var(--bg);border-radius:8px;padding:12px;margin-bottom:10px">
-        <div style="font-weight:700;font-size:12px;margin-bottom:8px;color:var(--navy)">A — Provozní připravenost</div>
-        <div style="display:flex;gap:16px">
-          <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="radio" name="pw-provoz" value="funkční"> Funkční</label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="radio" name="pw-provoz" value="nefunkční"> Nefunkční</label>
-        </div>
-      </div>
-
-      <!-- Sekce B — Revizní kniha -->
-      <div style="background:var(--bg);border-radius:8px;padding:12px;margin-bottom:10px">
-        <div style="font-weight:700;font-size:12px;margin-bottom:8px;color:var(--navy)">B — Revizní kniha</div>
-        <div style="display:flex;gap:16px">
-          <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="radio" name="pw-revkniha" value="k dispozici"> K dispozici</label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="radio" name="pw-revkniha" value="není k dispozici"> Není k dispozici</label>
-        </div>
-      </div>
-
-      <!-- Dynamické sekce dle typu -->
-      <div id="pw-dynamic-sections"></div>
-
-      <!-- Stav zařízení -->
-      <div style="background:var(--bg);border-radius:8px;padding:12px;margin-bottom:10px">
-        <div style="font-weight:700;font-size:12px;margin-bottom:8px;color:var(--navy)" id="pw-stav-label">D — Stav zařízení</div>
-        <div style="display:flex;flex-direction:column;gap:6px">
-          <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="radio" name="pw-stav" value="zelena"> 🟢 Zelená — zařízení je plně funkční</label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="radio" name="pw-stav" value="zluta"> 🟡 Žlutá — vyhovující s nedostatky, následuje nabídka</label>
-          <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="radio" name="pw-stav" value="cervena"> 🔴 Červená — zařízení nevyhovující dle Vyhl.246/2001 Sb.</label>
-        </div>
-      </div>
-    </div>
-
-    <!-- Ministerstvo obrany specifická pole -->
-    <div id="pw-minobr-fields" style="display:none">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-        <div class="fg2">
-          <label>Evidenční číslo</label>
-          <input id="pw-ev-cislo" placeholder="POZ-913401-2026">
-        </div>
-        <div class="fg2">
-          <label>Vojenský útvar</label>
-          <input id="pw-voj-utvar" placeholder="VÚ 3255">
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-        <div class="fg2">
-          <label>Místo provedení</label>
-          <input id="pw-misto-proven" placeholder="Praha / Olomouc">
-        </div>
-        <div class="fg2">
-          <label>Budova / místnost</label>
-          <input id="pw-budova" placeholder="B004/1NP/139">
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-        <div class="fg2">
-          <label>Typ klimatizační jednotky</label>
-          <input id="pw-typ-kj" placeholder="ATREA DUPLEX">
-        </div>
-        <div class="fg2">
-          <label>Výr. číslo vnitřní / vnější</label>
-          <input id="pw-sn-kj" placeholder="227387 / 227387">
-        </div>
-      </div>
-      <div class="fg2" style="margin-bottom:12px">
-        <label>Chladivo</label>
-        <input id="pw-chladivo" placeholder="R410A">
-      </div>
-      <div style="background:var(--bg);border-radius:8px;padding:12px;margin-bottom:10px;font-size:12px">
-        <div style="font-weight:700;margin-bottom:8px;color:var(--navy)">Provedené práce — zaškrtněte provedené:</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" id="pw-minobr-checks"></div>
-      </div>
-    </div>
-
-    <!-- Společná závěrečná pole -->
-    <div class="fg2" style="margin-bottom:14px">
-      <label>Závěr / Popis zjištěných skutečností a závad</label>
-      <textarea id="pw-zaver" rows="4" style="resize:vertical" placeholder="Popis provedené práce, zjištěné závady, doporučení…"></textarea>
-    </div>
-
-    <div class="modal-foot">
-      <button onclick="closeModal('protocol-wizard-modal')" class="btn btn-ghost">Zrušit</button>
-      <button onclick="generateProtocol()" class="btn btn-green" style="font-size:13px;font-weight:700">📄 Generovat protokol</button>
-    </div>
-  </div>
-</div>
-
-\u003cscript>
+// Protocol wizard HTML is in index.html
 // ════════════════════════════════════════════════════════════════
 //  MODUL: ZÁKAZNICKÉ PROTOKOLY
 //  Kaufland 05A (roční), Kaufland 05B (půlroční), Min. obrany
@@ -3500,13 +3340,7 @@ ${provedenePrace.length ? `<div style="border:1px solid #000;margin-bottom:6px">
   }, 500);
 })();
 
-\u003c/script>
-</body>
-</html>`;
-
-  // Zobraz souhrn v inline modalu
-  showSouhrn(html, z);
-}
+// showSouhrn, closeSouhrnView, printSouhrnView — souhrn view
 
 function showSouhrn(htmlContent, z) {
   // Vytvoř nebo najdi modal
