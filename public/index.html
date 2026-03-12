@@ -1,0 +1,2115 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#0f1f3d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Servis">
+  <title>AC EURO &amp; Progresklima — Servis</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+
+<!-- ══ LOGIN ══════════════════════════════════════════════════ -->
+<!-- LOGIN -->
+<div id="login-screen" style="display:flex">
+  <div class="login-card">
+    <img class="login-logo" src="/img/logo-aceuro.jpeg" alt="AC EURO">
+    <div class="login-title">Servisní systém</div>
+    <div class="login-sub">Přihlaste se pro přístup k formulářům</div>
+    <button class="btn-google" id="btn-google" style="display:none" onclick="loginGoogle()">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G">
+      Přihlásit se přes Google
+    </button>
+    <div id="popup-tip" style="display:none;font-size:11px;color:#b45309;background:#fef9ec;border:1px solid #fcd34d;border-radius:6px;padding:8px 12px;margin-top:8px;line-height:1.5">
+      ⚠ Prohlížeč blokuje přihlašovací okno.<br>Klikněte na ikonu <strong>🚫</strong> nebo <strong>📷</strong> v adresním řádku a zvolte <strong>Povolit popup</strong>. Nebo se přihlaste e-mailem níže.
+    </div>
+    <div class="login-divider">nebo e-mailem</div>
+    <div class="fg"><label>E-mail</label>
+      <input type="email" id="l-email" placeholder="vas@email.cz" autocomplete="email"></div>
+    <div class="fg"><label>Heslo</label>
+      <input type="password" id="l-pass" placeholder="••••••••" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter')loginEmail()"></div>
+    <button class="btn-login" id="btn-login" onclick="loginEmail()">Přihlásit se</button>
+    <div class="login-err" id="login-err"></div>
+    <div style="text-align:center;margin-top:14px;font-size:12px;color:#6b7a99">
+      Nemáte účet? <a href="#" onclick="showRegister();return false" style="color:var(--blue);font-weight:600">Registrovat se</a>
+    </div>
+  </div>
+
+  <!-- Registrační formulář -->
+  <div class="login-card" id="register-card" style="display:none">
+    <img class="login-logo" src="/img/logo-aceuro.jpeg">
+    <div class="login-title">Registrace</div>
+    <div class="login-sub">Nový účet — po registraci bude schválen adminem</div>
+    <div class="fg"><label>Jméno a příjmení</label>
+      <input type="text" id="r-name" placeholder="Jan Novák" autocomplete="name"></div>
+    <div class="fg"><label>E-mail</label>
+      <input type="email" id="r-email" placeholder="vas@email.cz" autocomplete="email"></div>
+    <div class="fg"><label>Heslo</label>
+      <input type="password" id="r-pass" placeholder="min. 6 znaků"></div>
+    <div class="fg"><label>Heslo znovu</label>
+      <input type="password" id="r-pass2" placeholder="••••••••"></div>
+    <button class="btn-login" id="btn-register" onclick="doRegister()">Zaregistrovat se</button>
+    <div class="login-err" id="register-err"></div>
+    <div style="text-align:center;margin-top:14px;font-size:12px;color:#6b7a99">
+      Máte účet? <a href="#" onclick="showLogin();return false" style="color:var(--blue);font-weight:600">Přihlásit se</a>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+
+<!-- ══ TECHNIK APP ════════════════════════════════════════════ -->
+<div id="app-technik" style="display:none;flex-direction:column;min-height:100vh">
+  <div id="offline-banner">📵 Offline režim — zakázka se odešle automaticky po připojení</div>
+  <div id="topbar-accent" style="height:3px;background:#6abf3e;transition:background .3s"></div>
+  <div class="topbar">
+    <img src="/img/logo-aceuro.jpeg" alt="AC EURO">
+    <div class="topbar-right">
+      <span class="pending-badge" id="pending-badge" title="Čeká na odeslání">⏳ Offline fronta</span>
+      <div class="user-badge">
+        <div class="user-avatar" id="user-avatar">?</div>
+        <span id="user-name"></span>
+      </div>
+      <button onclick="toggleCalendar()" id="cal-btn" title="Přehled na 14 dní"
+        style="background:var(--blue);color:#fff;border:none;border-radius:7px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;font-family:inherit">
+        📅 <span id="cal-badge" style="background:#6abf3e;color:#fff;border-radius:10px;padding:1px 5px;font-size:10px;display:none">0</span>
+      </button>
+      <button onclick="openMapaTechniku()" title="Mapa techniků" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.85);border-radius:7px;padding:5px 10px;cursor:pointer;font-size:14px">🗺</button>
+      <button id="dark-toggle" onclick="toggleDarkMode()" title="Přepnout tmavý režim">🌙</button>
+      <div id="notif-bell" style="display:none" onclick="toggleNotifPanel()" title="Notifikace">
+        <span style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.85);border-radius:7px;padding:5px 10px;font-size:14px;display:inline-block">🔔</span>
+        <span id="notif-count" style="display:none;position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;font-size:9px;font-weight:700;border-radius:50%;width:16px;height:16px;line-height:16px;text-align:center">0</span>
+      </div>
+      <div id="notif-panel" style="display:none;position:absolute;top:54px;right:120px;width:340px;background:#fff;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.18);z-index:500;max-height:420px;overflow-y:auto;border:1px solid var(--border)">
+        <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:13px;font-weight:700;color:var(--navy)">🔔 Notifikace</span>
+          <button onclick="clearAllNotifs()" style="font-size:10px;color:var(--muted);background:none;border:none;cursor:pointer">Vymazat vše</button>
+        </div>
+        <div id="notif-list" style="padding:8px 0">
+          <div style="padding:16px;text-align:center;color:var(--muted);font-size:12px">Žádné notifikace</div>
+        </div>
+      </div>
+      <button class="btn-signout" onclick="doSignOut()">Odhlásit</button>
+    </div>
+  </div>
+  <!-- 14-DENNÍ PŘEHLED -->
+  <div id="calendar-strip" style="background:#fff;border-bottom:2px solid var(--border);padding:10px 16px 8px;display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <span style="font-size:11px;font-weight:700;color:var(--navy);letter-spacing:.05em;text-transform:uppercase">📅 Přehled — nejbližší 2 týdny</span>
+      <button onclick="document.getElementById('calendar-strip').style.display='none'" style="background:none;border:none;font-size:15px;cursor:pointer;color:var(--muted);line-height:1">×</button>
+    </div>
+    <div id="cal-days" style="display:flex;gap:4px;overflow-x:auto;padding-bottom:4px"></div>
+  </div>
+
+  <div class="progress">
+    <button class="stab active" onclick="goTo(0)" id="tab-0"><span class="snum">1</span><span class="slbl">Základní info</span><span class="schk">✓</span></button>
+    <button class="stab" onclick="goTo(1)" id="tab-1"><span class="snum">2</span><span class="slbl">Servisní práce</span><span class="schk">✓</span></button>
+    <button class="stab" onclick="goTo(2)" id="tab-2"><span class="snum">3</span><span class="slbl">Položky</span><span class="schk">✓</span></button>
+    <button class="stab" onclick="goTo(3)" id="tab-3"><span class="snum">4</span><span class="slbl">Poznámky</span><span class="schk">✓</span></button>
+    <button class="stab" onclick="goTo(4)" id="tab-4"><span class="snum">5</span><span class="slbl">Fotografie</span><span class="schk">✓</span></button>
+    <button class="stab" onclick="goTo(5)" id="tab-5"><span class="snum">6</span><span class="slbl">Podpisy & PDF</span><span class="schk">✓</span></button>
+    <button class="stab" onclick="goTo(6)" id="tab-6"><span class="snum">7</span><span class="slbl">Odeslat</span><span class="schk">✓</span></button>
+  </div>
+  <div class="main"><div class="card">
+
+  <!-- STEP 1 -->
+  <div class="panel active" id="step-0">
+    <div class="ph"><div class="ph-icon">📋</div><div><h2>Základní informace</h2><p>Identifikace zakázky a zákazníka</p></div></div>
+    <div class="pbody">
+      <div id="assigned-info"></div>
+
+      <!-- Zakázka ze seznamu nebo vlastní -->
+      <div class="fg2" style="margin-bottom:4px">
+        <label>Zakázka ze seznamu <span style="font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0">(nebo zadejte vlastní níže)</span></label>
+        <div style="display:flex;gap:8px">
+          <select id="zakaz_select" style="flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:#fff;color:var(--text)" onchange="onZakazSelect(this.value)">
+            <option value="">— Vyberte ze seznamu nebo zadejte vlastní —</option>
+          </select>
+          <button type="button" onclick="reloadZakazkyList()" style="padding:9px 11px;background:var(--blue2);border:1.5px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px" title="Obnovit seznam">↻</button>
+        </div>
+      </div>
+
+      <div class="two">
+        <div class="fg2"><label>Název zakázky *</label>
+          <input id="f_nazev" autocomplete="off" placeholder="např. Klimatizace Brno">
+          <span class="ferr" id="e_nazev">Povinné pole</span></div>
+        <div class="fg2"><label>Číslo servisu *</label>
+          <input id="f_cislo" autocomplete="off" placeholder="2024-001">
+          <span class="ferr" id="e_cislo">Povinné pole</span></div>
+      </div>
+      <!-- Volba firmy -->
+      <div class="fg2" style="margin-bottom:8px">
+        <label>Servis provádí *</label>
+        <div style="display:flex;gap:8px">
+          <button type="button" id="btn-firma-aceuro" onclick="setFirma('aceuro')"
+            style="flex:1;padding:10px 8px;border-radius:9px;border:2px solid #6abf3e;background:#f0fff4;font-size:13px;font-weight:700;cursor:pointer;color:#0f1f3d;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s">
+            <span style="width:10px;height:10px;border-radius:50%;background:#6abf3e;display:inline-block"></span>AC EURO a.s.
+          </button>
+          <button type="button" id="btn-firma-progres" onclick="setFirma('progres')"
+            style="flex:1;padding:10px 8px;border-radius:9px;border:2px solid #d0d8e8;background:#fff;font-size:13px;font-weight:700;cursor:pointer;color:#6b7a99;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s">
+            <span style="width:10px;height:10px;border-radius:50%;background:#1e90ff;display:inline-block"></span>Progresklima CZ
+          </button>
+        </div>
+      </div>
+
+      <!-- Zákazník s ARES -->
+      <div class="two">
+        <div class="fg2" style="position:relative">
+          <label>Zákazník (IČO nebo název)</label>
+          <input id="f_zakaznik" autocomplete="off" placeholder="Název firmy nebo IČO…" oninput="aresDebounce(this.value)">
+          <div id="ares-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid var(--border);border-radius:8px;box-shadow:0 4px 16px rgba(15,31,61,.12);z-index:200;max-height:220px;overflow-y:auto;margin-top:2px"></div>
+          <div id="ares-loading" style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--muted)">🔍</div>
+        </div>
+        <div class="fg2"><label>Termín provedení</label>
+          <input id="f_termin" type="date"></div>
+        <div class="fg2"><label>Odpracováno (h)</label>
+          <input id="f_hodiny" type="number" min="0" step="0.5" placeholder="0.0"></div>
+        <div class="fg2"><label>Najetých km</label>
+          <input id="f_km" type="number" min="0" step="1" placeholder="0"></div>
+      </div>
+      <!-- Adresa zákazníka -->
+      <div class="fg2" style="margin-top:2px">
+        <label>Adresa zákazníka <span style="font-weight:400;color:var(--muted);text-transform:none">(doplní se z ARESu)</span></label>
+        <input id="f_adresa" autocomplete="off" placeholder="Ulice, město, PSČ">
+      </div>
+      <div class="fg2" style="margin-top:2px">
+        <label>IČO / DIČ</label>
+        <div style="display:flex;gap:8px">
+          <input id="f_ico" autocomplete="off" placeholder="12345678" style="flex:1">
+          <input id="f_dic" autocomplete="off" placeholder="CZ12345678" style="flex:1">
+        </div>
+      </div>
+
+      <!-- Technici ze seznamu nebo vlastní -->
+      <div class="fg2" style="margin-top:4px">
+        <label>Technici <span style="font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0">(lze přidat více)</span></label>
+        <div id="technici-list" style="display:flex;flex-direction:column;gap:6px"></div>
+        <button type="button" onclick="addTechRow()" style="margin-top:6px;padding:7px 12px;background:var(--blue2);border:1.5px solid var(--border);border-radius:7px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:5px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Přidat dalšího technika
+        </button>
+      </div>
+      <!-- Výběr vedoucího / příjemce servisního listu -->
+      <div class="fg2" style="margin-top:10px">
+        <label>Vedoucí / příjemce servisního listu <span style="font-weight:400;color:var(--muted);text-transform:none;letter-spacing:0">(pošle se jim PDF)</span></label>
+        <select id="f_vedouci" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:#fff;color:var(--text)" onchange="saveDraft()">
+          <option value="">— Nevybráno —</option>
+        </select>
+        <div style="margin-top:6px">
+          <label style="font-size:12px;color:var(--muted);font-weight:400">Nebo zadejte e-mail ručně:</label>
+          <input id="f_vedouci_email" type="email" placeholder="vedouci@firma.cz" style="width:100%;margin-top:4px;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px" oninput="saveDraft()">
+        </div>
+      </div>
+
+      <!-- Přiřazené zakázky od kanceláře -->
+      <div class="fg2" style="margin-top:16px">
+        <label style="display:flex;align-items:center;justify-content:space-between">
+          <span>Přiřazené zakázky od kanceláře</span>
+          <button type="button" onclick="loadAssignedZakazky(window._currentUser)" style="padding:4px 10px;background:var(--blue2);border:1.5px solid var(--border);border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;color:var(--text)">↻ Obnovit</button>
+          <button type="button" onclick="openQuickZakazka()" style="padding:4px 10px;background:var(--green);border:none;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700;color:#fff;margin-left:4px">+ Rychlá zakázka</button>
+        </label>
+        <div id="assigned-panel" style="margin-top:6px">
+          <div style="font-size:12px;color:var(--muted);font-style:italic;text-align:center;padding:12px">Načítám...</div>
+        </div>
+      </div>
+
+    </div>
+    <div class="pfoot"><span class="pctr">Krok 1 z 7</span>
+      <button class="btn btn-next" onclick="nextStep(0)">Pokračovat →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="panel" id="step-1">
+    <div class="ph"><div class="ph-icon">🔧</div><div><h2>Provedené servisní práce</h2><p>Popis všech provedených úkonů</p></div>
+    <button type="button" id="lock-prace-btn" onclick="toggleLock('prace')" style="margin-left:auto;padding:6px 14px;border-radius:7px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px;color:var(--text)">
+      <span id="lock-prace-icon">🔓</span><span id="lock-prace-label">Odemčeno</span>
+    </button></div>
+    <div class="pbody">
+      <div class="fg2"><label>Popis prací</label>
+        <div class="dotlines-wrap" id="prace-wrap"></div></div>
+    </div>
+    <div class="pfoot"><span class="pctr">Krok 2 z 7</span><div style="display:flex;gap:8px">
+      <button class="btn btn-ghost" onclick="goTo(0)">← Zpět</button>
+      <button class="btn btn-next" onclick="goTo(2)">Pokračovat →</button>
+    </div></div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="panel" id="step-2">
+    <div class="ph"><div class="ph-icon">💰</div><div><h2>Položky a ceny</h2><p>Materiál, práce — nebo přeskočte</p></div></div>
+    <div class="pbody">
+      <div style="background:#fffbf0;border:1.5px solid #f0d080;border-radius:8px;padding:12px 14px;display:flex;gap:10px;align-items:center">
+        <div style="font-size:16px">💡</div>
+        <div style="font-size:11px;color:#7a5500;flex:1">Ceny neznáte? Přeskočte — kancelář doplní.</div>
+        <button onclick="skipPrices()" style="background:#f5c842;color:#5a3d00;border:none;border-radius:6px;padding:6px 13px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">Přeskočit →</button>
+      </div>
+      <div style="border:1px solid var(--border);border-radius:6px;overflow:hidden">
+        <table class="items-tbl"><thead><tr>
+          <th style="text-align:left;width:44%;padding:7px 8px">Položka</th>
+          <th style="width:13%">Počet ks</th><th style="width:18%">Cena Kč/ks</th><th style="width:18%">Celkem Kč</th>
+        </tr></thead>
+        <tbody id="items-tbody"></tbody>
+        <tbody id="ext-tbody"><tr class="sep-row"><td colspan="4">Cestovní náklady</td></tr></tbody>
+        </table>
+        <div class="total-bar"><span>Cena bez DPH</span><strong id="cena_total">0,00 Kč</strong></div>
+      </div>
+      <div class="fg2"><label>Datum ukončení prací (DUZP)</label><input id="f_duzp" type="date"></div>
+    </div>
+    <div class="pfoot"><span class="pctr">Krok 3 z 7</span><div style="display:flex;gap:8px">
+      <button class="btn btn-ghost" onclick="goTo(1)">← Zpět</button>
+      <button class="btn btn-next" onclick="goTo(3)">Pokračovat →</button>
+    </div></div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="panel" id="step-3">
+    <div class="ph"><div class="ph-icon">📝</div><div><h2>Poznámky</h2><p>Doplňující informace nebo upozornění</p></div>
+    <button type="button" id="lock-pozn-btn" onclick="toggleLock('pozn')" style="margin-left:auto;padding:6px 14px;border-radius:7px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px;color:var(--text)">
+      <span id="lock-pozn-icon">🔓</span><span id="lock-pozn-label">Odemčeno</span>
+    </button></div>
+    <div class="pbody">
+      <div class="fg2"><label>Poznámky <span style="font-size:11px;font-weight:400;color:var(--muted)">(zobrazí se zákazníkovi na servisním listu)</span></label>
+        <div class="dotlines-wrap" id="pozn-wrap"></div></div>
+      <div class="fg2" style="margin-top:14px">
+        <label style="display:flex;align-items:center;gap:6px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span>Interní komentář <span style="font-size:11px;font-weight:400;color:#7c3aed">(pouze pro kancelář — nezobrazí se zákazníkovi)</span></span>
+        </label>
+        <textarea id="f_komentar" rows="3" style="width:100%;margin-top:6px;padding:10px 12px;border:1.5px solid #d0c0f0;border-radius:8px;font-size:13px;font-family:inherit;background:#faf7ff;resize:vertical;color:var(--text)" placeholder="Např.: zákazník reklamoval, domluvit opakovanou návštěvu, pozor na platbu..."></textarea>
+      </div>
+    </div>
+    <div class="pfoot"><span class="pctr">Krok 4 z 7</span><div style="display:flex;gap:8px">
+      <button class="btn btn-ghost" onclick="goTo(2)">← Zpět</button>
+      <button class="btn btn-next" onclick="goTo(4)">Pokračovat →</button>
+    </div></div>
+  </div>
+
+  <!-- STEP 5 -->
+  <div class="panel" id="step-4">
+    <div class="ph"><div class="ph-icon">📷</div><div><h2>Fotografie</h2><p>Fotodokumentace závady nebo prací</p></div></div>
+    <div class="pbody">
+      <div class="photo-grid" id="photo-grid">
+        <label class="photo-add" for="photo-input">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          Přidat foto
+        </label>
+      </div>
+      <input type="file" id="photo-input" accept="image/*" multiple capture="environment" onchange="addPhotos(this)">
+      <div class="upload-prog" id="upload-prog">
+        <span id="upload-msg">Nahrávám fotografie...</span>
+        <div class="bar"><div class="bar-fill" id="bar-fill"></div></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted)">Fotografie se nahrají do cloudu. Offline: uloží se lokálně a nahrají automaticky po připojení.</div>
+    </div>
+    <div class="pfoot"><span class="pctr">Krok 5 z 7</span><div style="display:flex;gap:8px">
+      <button class="btn btn-ghost" onclick="goTo(3)">← Zpět</button>
+      <button class="btn btn-next" onclick="goTo(5)">Pokračovat →</button>
+    </div></div>
+  </div>
+
+  <!-- STEP 6 -->
+  <div class="panel" id="step-5">
+    <div class="ph"><div class="ph-icon">✍️</div><div><h2>Podpisy a PDF pro zákazníka</h2><p>Klepněte na plochu — otevře se celá obrazovka</p></div></div>
+    <div class="pbody">
+      <div class="prev-wrap">
+        <div class="prev-hdr">👁 Náhled servisního listu</div>
+        <div class="prev-body" id="preview-body"></div>
+      </div>
+      <div class="sig-wrap">
+        <div class="sig-bar">Za zhotovitele <button class="btn-sigclr" onclick="clearSig(1)">✕ Vymazat</button></div>
+        <div class="sig-area" onclick="openSigFS(1)" title="Klepněte pro podpis přes celou obrazovku">
+          <canvas id="sig1" style="display:none"></canvas>
+          <div class="sig-hint" id="sh1">✏️ Klepněte pro podpis</div>
+          <div class="sig-preview" id="sp1"></div>
+        </div>
+        <div class="sig-foot"><label>Datum:</label><input type="date" id="sd1"></div>
+        <div class="sig-foot" style="margin-top:4px"><label>Jméno:</label><input type="text" id="sig1-name" placeholder="Jméno technika" style="font-size:12px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;width:160px"></div>
+      </div>
+      <div class="sig-wrap">
+        <div class="sig-bar">Za objednatele <button class="btn-sigclr" onclick="clearSig(2)">✕ Vymazat</button></div>
+        <div class="sig-area" onclick="openSigFS(2)" title="Klepněte pro podpis přes celou obrazovku">
+          <canvas id="sig2" style="display:none"></canvas>
+          <div class="sig-hint" id="sh2">✏️ Klepněte pro podpis</div>
+          <div class="sig-preview" id="sp2"></div>
+        </div>
+        <div class="sig-foot">
+          <label>Datum:</label><input type="date" id="sd2">
+          <button onclick="openZakaznikSig()" style="margin-left:auto;background:var(--green);color:#fff;border:none;border-radius:8px;padding:7px 14px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Podepsat zákazníkem
+          </button>
+        
+        <div class="sig-foot" style="margin-top:4px"><label>Jméno:</label><input type="text" id="sig2-name" placeholder="Jméno zákazníka" style="font-size:12px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;width:160px"></div>
+        <button onclick="addExtraSignatory()" style="margin-top:6px;background:none;border:1px dashed var(--border);color:var(--muted);border-radius:5px;padding:3px 10px;font-size:11px;cursor:pointer">＋ Přidat osobu</button>
+      </div>
+      <div id="extra-signatories" style="display:flex;flex-direction:column;gap:0"></div>
+      </div>
+      <div class="status-box success">
+        <div style="font-size:20px">🖨️</div>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#1a6b2a;margin-bottom:3px">Tisk pro zákazníka — bez cen</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:10px">Zákazník obdrží servisní list s popisem prací a podpisy.</div>
+          <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text);margin-bottom:10px;cursor:pointer">
+            <input type="checkbox" id="print-photos-cb" style="width:15px;height:15px;accent-color:var(--green)">
+            Zahrnout fotodokumentaci (přidá stránky za servisní list)
+          </label>
+          <button class="btn btn-green" onclick="printCustomer()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Tisk / PDF pro zákazníka
+          </button>
+          <div class="status-line" id="print-status"></div>
+        </div>
+      </div>
+    </div>
+    <div class="pfoot"><span class="pctr">Krok 6 z 7</span><div style="display:flex;gap:8px">
+      <button class="btn btn-ghost" onclick="goTo(4)">← Zpět</button>
+      <button class="btn btn-next" onclick="goTo(6)">Pokračovat → Odeslat</button>
+    </div></div>
+  </div>
+
+  <!-- STEP 7 -->
+  <div class="panel" id="step-6">
+    <div class="ph"><div class="ph-icon">☁️</div><div><h2>Odeslat zakázku</h2><p>Uložení do systému — kancelář uvidí ihned</p></div></div>
+    <div class="pbody" id="submit-body">
+      <div id="pre-submit">
+        <div class="status-box info">
+          <div style="font-size:20px">📋</div>
+          <div id="submit-summary" style="font-size:12px;line-height:1.7;color:var(--text)"></div>
+        </div>
+        
+        <button class="btn btn-green" id="btn-submit" onclick="submitZakazka()" style="width:100%;justify-content:center;padding:14px;font-size:15px">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
+          Odeslat zakázku do kanceláře
+        </button>
+        <div class="status-line" id="submit-status"></div>
+      </div>
+      <div id="post-submit" style="display:none;text-align:center;padding:20px 0">
+        <div style="font-size:52px;margin-bottom:12px">&#x2705;</div>
+        <div style="font-size:18px;font-weight:700;color:#0f1f3d;margin-bottom:6px">Zakázka odeslána!</div>
+        <div style="font-size:12px;color:#6b7a99;margin-bottom:20px">Kancelář ji vidí v systému.</div>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:16px">
+          <button class="btn" style="background:#2d5fa6;color:#fff;padding:12px 24px;font-size:14px" onclick="printSubmittedList()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;vertical-align:middle;margin-right:6px"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Tisknout servisní list
+          </button>
+          <button class="btn btn-green" onclick="resetForm()" style="font-size:14px;padding:12px 24px">
+            &#x2795; Nová zakázka
+          </button>
+        </div>
+        <div class="status-line" id="pdf-status" style="text-align:center"></div>
+      </div>
+    </div>
+    <div class="pfoot"><span class="pctr">Krok 7 z 7</span>
+      <button class="btn btn-ghost" onclick="goTo(5)">← Zpět</button>
+    </div>
+  </div>
+
+  </div></div><!-- /card /main -->
+<!-- /app-screen -->
+
+<!-- FULLSCREEN SIGNATURE OVERLAY -->
+<!-- ══ MÍSTA & KLIMATIZACE PANEL ══════════════════════════════ -->
+<div id="mista-overlay" style="position:fixed;inset:0;z-index:600;background:var(--bg);display:none;flex-direction:column;overflow:hidden">
+  <!-- Header -->
+  <div style="background:var(--navy);color:#fff;padding:0;flex-shrink:0">
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px">
+      <button onclick="closeMistaPanel()" style="background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px;font-weight:600">← Zpět</button>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:15px;font-weight:800" id="mista-zakaz-nazev">Místa &amp; Klimatizace</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.65)" id="mista-zakaz-sub"></div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button onclick="openAddMistoModal()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:12px;font-weight:600">+ Místo</button>
+        <button onclick="openMistaImport()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.85);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:12px">📥 Import CSV</button>
+        <button onclick="copyMistaFromSablona()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.85);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:12px">📋 Kopírovat</button>
+      </div>
+    </div>
+    <!-- Progress bar -->
+    <div style="padding:0 16px 10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+        <span style="font-size:11px;color:rgba(255,255,255,.7)" id="mista-progress-label">0 / 0 klimatizací zkontrolováno</span>
+        <span style="font-size:11px;color:rgba(255,255,255,.7)" id="mista-progress-pct">0%</span>
+      </div>
+      <div style="background:rgba(255,255,255,.15);border-radius:4px;height:6px;overflow:hidden">
+        <div id="mista-progress-bar" style="height:100%;background:#4ade80;border-radius:4px;transition:width .4s;width:0%"></div>
+      </div>
+    </div>
+    <!-- Search + filter -->
+    <div style="padding:0 16px 10px;display:flex;gap:8px">
+      <input id="mista-search" placeholder="🔍 Hledat místo…" oninput="renderMistaList()" style="flex:1;padding:7px 12px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;border-radius:8px;font-size:13px;outline:none" autocomplete="off">
+      <select id="mista-filter-stav" onchange="renderMistaList()" style="padding:7px 10px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;border-radius:8px;font-size:12px">
+        <option value="">Všechna místa</option>
+        <option value="done">✅ Hotová</option>
+        <option value="partial">⚠️ Částečná</option>
+        <option value="new">🆕 Nezahájená</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Split layout: místa list | detail klimatizací -->
+  <div style="display:flex;flex:1;overflow:hidden">
+    <!-- Levý panel: seznam míst -->
+    <div id="mista-list-panel" style="width:320px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;background:var(--card)">
+      <div id="mista-list-inner" style="padding:8px"></div>
+    </div>
+    <!-- Pravý panel: klimatizace na vybraném místě -->
+    <div id="klim-panel" style="flex:1;overflow-y:auto;background:var(--bg)">
+      <div id="klim-empty" style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:13px;flex-direction:column;gap:8px">
+        <span style="font-size:40px">🏢</span>
+        <span>Vyberte místo ze seznamu vlevo</span>
+      </div>
+      <div id="klim-content" style="display:none;padding:16px">
+        <div id="klim-header" style="margin-bottom:12px"></div>
+        <div id="klim-list" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PŘIDAT MÍSTO MODAL -->
+<div class="modal-overlay" id="add-misto-modal">
+  <div class="modal-box" style="max-width:420px">
+    <h3 style="margin-bottom:14px">🏢 Přidat místo</h3>
+    <input type="hidden" id="edit-misto-id">
+    <div class="fg2" style="margin-bottom:10px">
+      <label>Název místa *</label>
+      <input id="misto-nazev-inp" placeholder="např. Budova A – 2. patro">
+    </div>
+    <div class="fg2" style="margin-bottom:10px">
+      <label>Adresa / popis umístění</label>
+      <input id="misto-adresa-inp" placeholder="Ulice 1, Praha">
+    </div>
+    <div class="fg2" style="margin-bottom:16px">
+      <label>Poznámka</label>
+      <textarea id="misto-pozn-inp" rows="2" style="resize:none" placeholder="Přístupový kód, kontakt…"></textarea>
+    </div>
+    <div class="modal-foot">
+      <button onclick="closeModal('add-misto-modal')" class="btn btn-ghost">Zrušit</button>
+      <button onclick="saveMisto()" class="btn btn-green">Uložit místo</button>
+    </div>
+  </div>
+</div>
+
+<!-- PŘIDAT / EDITOVAT KLIMATIZACI MODAL -->
+<div class="modal-overlay" id="add-klim-modal">
+  <div class="modal-box" style="max-width:540px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <h3 id="klim-modal-title">🌡 Klimatizace</h3>
+      <button onclick="closeModal('add-klim-modal')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">×</button>
+    </div>
+    <input type="hidden" id="edit-klim-id">
+    <input type="hidden" id="edit-klim-misto-id">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div class="fg2">
+        <label>Model / typ *</label>
+        <input id="klim-model-inp" placeholder="např. Daikin FTXM25M">
+      </div>
+      <div class="fg2">
+        <label>Sériové číslo</label>
+        <input id="klim-sn-inp" placeholder="SN123456">
+      </div>
+    </div>
+    <div class="fg2" style="margin-bottom:10px">
+      <label>Umístění (v rámci místa)</label>
+      <input id="klim-umisteni-inp" placeholder="např. Kancelář 201, jižní stěna">
+    </div>
+    <div class="fg2" style="margin-bottom:10px">
+      <label>Poznámka technika / výsledek kontroly</label>
+      <textarea id="klim-pozn-inp" rows="3" style="resize:vertical" placeholder="Co bylo provedeno, co je závada…"></textarea>
+    </div>
+    <div class="fg2" style="margin-bottom:10px">
+      <label>Stav po kontrole</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px" id="klim-stav-btns">
+        <button type="button" onclick="setKlimStav('ok')" class="klim-stav-btn" data-stav="ok" style="padding:7px 14px;border-radius:20px;border:2px solid #16a34a;color:#16a34a;background:#f0fdf4;cursor:pointer;font-weight:700;font-size:12px">✅ OK</button>
+        <button type="button" onclick="setKlimStav('zavada')" class="klim-stav-btn" data-stav="zavada" style="padding:7px 14px;border-radius:20px;border:2px solid #d97706;color:#d97706;background:#fffbeb;cursor:pointer;font-weight:700;font-size:12px">⚠️ Závada</button>
+        <button type="button" onclick="setKlimStav('opraveno')" class="klim-stav-btn" data-stav="opraveno" style="padding:7px 14px;border-radius:20px;border:2px solid #2563eb;color:#2563eb;background:#eff6ff;cursor:pointer;font-weight:700;font-size:12px">🔧 Opraveno</button>
+        <button type="button" onclick="setKlimStav('vyrazeno')" class="klim-stav-btn" data-stav="vyrazeno" style="padding:7px 14px;border-radius:20px;border:2px solid #dc2626;color:#dc2626;background:#fef2f2;cursor:pointer;font-weight:700;font-size:12px">❌ Vyřazeno</button>
+      </div>
+      <input type="hidden" id="klim-stav-val">
+    </div>
+    <div class="fg2" style="margin-bottom:10px">
+      <label>Provedené práce / materiál</label>
+      <textarea id="klim-prace-inp" rows="2" style="resize:none" placeholder="Vyčištění filtrů, doplnění chladiva…"></textarea>
+    </div>
+    <div class="fg2" style="margin-bottom:14px">
+      <label>Foto (max 5)</label>
+      <input type="file" id="klim-foto-inp" accept="image/*" multiple capture="environment" style="font-size:12px">
+      <div id="klim-foto-preview" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
+    </div>
+    <div class="modal-foot">
+      <button onclick="closeModal('add-klim-modal')" class="btn btn-ghost">Zrušit</button>
+      <button onclick="saveKlimatizace()" id="save-klim-btn" class="btn btn-green">Uložit</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT CSV MODAL -->
+<div class="modal-overlay" id="mista-import-modal">
+  <div class="modal-box" style="max-width:560px">
+    <h3 style="margin-bottom:8px">📥 Import míst a klimatizací z CSV</h3>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px">CSV musí mít záhlaví: <code>misto,model,seriove_cislo,umisteni,poznamka</code></p>
+    <div style="background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:10px;font-size:11px;font-family:monospace;margin-bottom:12px;color:#475569">
+      misto,model,seriove_cislo,umisteni,poznamka<br>
+      Budova A,Daikin FTXM25M,SN001,Kancelář 101,<br>
+      Budova A,Mitsubishi MSZ-LN35,SN002,Kancelář 102,<br>
+      Budova B,LG S09EQ,SN003,Recepce,Nefunguje chlazení
+    </div>
+    <div class="fg2" style="margin-bottom:12px">
+      <label>Načíst soubor (.csv)</label>
+      <input type="file" id="mista-csv-file" accept=".csv,.txt" style="font-size:12px">
+    </div>
+    <div class="fg2" style="margin-bottom:12px">
+      <label>Nebo vložte CSV text přímo:</label>
+      <textarea id="mista-csv-text" rows="6" style="font-family:monospace;font-size:11px;resize:vertical" placeholder="misto,model,seriove_cislo,umisteni,poznamka&#10;Budova A,Daikin FTXM25M,SN001,..."></textarea>
+    </div>
+    <div id="mista-csv-preview" style="margin-bottom:12px"></div>
+    <div class="modal-foot">
+      <button onclick="closeModal('mista-import-modal')" class="btn btn-ghost">Zrušit</button>
+      <button onclick="parseMistaCsv()" class="btn btn-primary">Načíst a zobrazit</button>
+      <button onclick="importMistaCsv()" id="mista-import-btn" class="btn btn-green" style="display:none">✓ Importovat</button>
+    </div>
+  </div>
+</div>
+
+<!-- RYCHLÁ ZAKÁZKA MODAL (technik) -->
+<div id="quick-zakaz-overlay" style="position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center">
+  <div style="background:var(--card);border-radius:18px 18px 0 0;width:100%;max-width:520px;padding:20px;padding-bottom:calc(20px + env(safe-area-inset-bottom))">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h3 style="font-size:15px;font-weight:800;color:var(--navy)">⚡ Rychlá zakázka</h3>
+      <button onclick="closeQuickZakazka()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted)">×</button>
+    </div>
+    <div class="fg2" style="margin-bottom:10px">
+      <label>Název zakázky *</label>
+      <input id="qz-nazev" placeholder="Co je potřeba udělat?" style="font-size:15px">
+    </div>
+    <div class="fg2" style="margin-bottom:10px">
+      <label>Zákazník</label>
+      <input id="qz-zakaznik" placeholder="Jméno nebo firma" list="qz-zak-list">
+      <datalist id="qz-zak-list"></datalist>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div class="fg2">
+        <label>Termín</label>
+        <input id="qz-termin" type="date">
+      </div>
+      <div class="fg2">
+        <label>Adresa</label>
+        <input id="qz-adresa" placeholder="Ulice, město">
+      </div>
+    </div>
+    <div class="fg2" style="margin-bottom:16px">
+      <label>Stručný popis (volitelné)</label>
+      <textarea id="qz-popis" rows="2" placeholder="Co je závada, co vzít s sebou…" style="resize:none"></textarea>
+    </div>
+    <button onclick="saveQuickZakazka()" style="width:100%;padding:13px;background:var(--green);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit">
+      ✓ Vytvořit zakázku
+    </button>
+  </div>
+</div>
+
+<!-- ZÁKAZNÍK PODPIS OVERLAY — celoobrazovkový, jen pro zákazníka -->
+<div id="zakaznik-sig-overlay" style="position:fixed;inset:0;z-index:9000;display:none;flex-direction:column;background:#0f1f3d;touch-action:none">
+  <!-- Instrukce nahoře -->
+  <div style="padding:16px 20px;text-align:center;flex-shrink:0">
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,.5);margin-bottom:6px">Předání servisního zásahu</div>
+    <div style="font-size:18px;font-weight:800;color:#fff" id="zak-sig-nazev"></div>
+    <div style="font-size:13px;color:rgba(255,255,255,.7);margin-top:3px" id="zak-sig-prace"></div>
+  </div>
+  <!-- Shrnutí prací -->
+  <div id="zak-sig-summary" style="margin:0 16px 10px;background:rgba(255,255,255,.08);border-radius:10px;padding:10px 14px;font-size:12px;color:rgba(255,255,255,.8);max-height:80px;overflow-y:auto;flex-shrink:0"></div>
+  <!-- Výzva k podpisu -->
+  <div style="text-align:center;font-size:13px;color:rgba(255,255,255,.6);margin-bottom:6px;flex-shrink:0">
+    ✍️ Podepište níže pro potvrzení převzetí
+  </div>
+  <!-- Podpisová plocha -->
+  <canvas id="zak-sig-canvas" style="flex:1;width:100%;background:#fff;cursor:crosshair;display:block;touch-action:none"></canvas>
+  <!-- Tlačítka dole -->
+  <div style="padding:14px 16px;display:flex;gap:10px;justify-content:space-between;align-items:center;flex-shrink:0">
+    <button onclick="clearZakaznikSig()" style="background:rgba(255,255,255,.15);border:none;border-radius:8px;color:#fff;padding:10px 18px;font-family:inherit;font-size:13px;cursor:pointer">
+      ✕ Vymazat
+    </button>
+    <div style="display:flex;gap:10px">
+      <button onclick="cancelZakaznikSig()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:8px;color:rgba(255,255,255,.7);padding:10px 18px;font-family:inherit;font-size:13px;cursor:pointer">
+        Zrušit
+      </button>
+      <button onclick="confirmZakaznikSig()" style="background:#6abf3e;border:none;border-radius:8px;color:#fff;padding:10px 24px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Potvrdit podpis
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="sig-fs-overlay" id="sig-fs">
+  <div class="sig-fs-bar">
+    <span id="sig-fs-title">Podpis</span>
+    <button onclick="clearSigFS()" style="background:rgba(255,255,255,.15);border:none;border-radius:5px;color:#fff;padding:5px 12px;font-family:inherit;font-size:12px;cursor:pointer">✕ Vymazat</button>
+  </div>
+  <canvas id="sig-fs-canvas" class="sig-fs-canvas"></canvas>
+  <div class="sig-fs-foot">
+    <button onclick="closeSigFS(false)" class="btn btn-ghost" style="color:#fff;border-color:rgba(255,255,255,.3)">Zrušit</button>
+    <button onclick="closeSigFS(true)" class="btn btn-green">✓ Potvrdit podpis</button>
+  </div>
+</div>
+<!-- ══ SERVISNÍ LIST MODAL ══════════════════════════════════ -->
+<div class="modal-overlay" id="sl-modal" style="align-items:flex-start;padding:0;overflow-y:auto">
+  <div style="background:#fff;width:100%;max-width:780px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column">
+
+    <!-- Header -->
+    <div style="position:sticky;top:0;z-index:10;background:#0f1f3d;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px" id="sl-header">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div id="sl-brand-dot" style="width:10px;height:10px;border-radius:50%;background:#6abf3e;flex-shrink:0"></div>
+        <span style="font-weight:700;font-size:14px;color:#fff" id="sl-nazev">Servisní list</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div style="display:flex;gap:4px" id="sl-steps-dots">
+          <span class="sl-dot sl-dot-active" data-step="0">Základní info</span>
+          <span class="sl-dot" data-step="1">Servisní práce</span>
+          <span class="sl-dot" data-step="2">Položky</span>
+          <span class="sl-dot" data-step="3">Poznámky</span>
+          <span class="sl-dot" data-step="4">Fotografie</span>
+          <span class="sl-dot" data-step="5">Podpisy</span>
+          <span class="sl-dot" data-step="6">Odeslat & Tisk</span>
+        </div>
+        <button onclick="closeServiceListModal()" style="background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:7px;padding:6px 12px;cursor:pointer;font-size:12px;font-weight:600">✕ Zavřít</button>
+      </div>
+    </div>
+
+    <!-- Step panels -->
+    <div style="flex:1;padding:20px" id="sl-body">
+
+      <!-- STEP 0: Základní info -->
+      <div class="sl-panel sl-active" id="sl-step-0">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div class="fg2"><label>Název zakázky *</label>
+            <input id="sl-nazev-inp" placeholder="např. Klimatizace Brno" autocomplete="off"></div>
+          <div class="fg2"><label>Číslo servisu</label>
+            <input id="sl-cislo" placeholder="2024-001" autocomplete="off"></div>
+        </div>
+        <!-- Volba firmy -->
+        <div class="fg2" style="margin-bottom:10px">
+          <label>Servis provádí *</label>
+          <div style="display:flex;gap:8px">
+            <button type="button" id="sl-btn-aceuro" onclick="slSetFirma('aceuro')"
+              style="flex:1;padding:9px 8px;border-radius:8px;border:2px solid #6abf3e;background:#f0fff4;font-size:12px;font-weight:700;cursor:pointer;color:#0f1f3d;display:flex;align-items:center;justify-content:center;gap:5px">
+              <span style="width:8px;height:8px;border-radius:50%;background:#6abf3e;display:inline-block"></span>AC EURO a.s.
+            </button>
+            <button type="button" id="sl-btn-progres" onclick="slSetFirma('progres')"
+              style="flex:1;padding:9px 8px;border-radius:8px;border:2px solid #d0d8e8;background:#fff;font-size:12px;font-weight:700;cursor:pointer;color:#6b7a99;display:flex;align-items:center;justify-content:center;gap:5px">
+              <span style="width:8px;height:8px;border-radius:50%;background:#1e90ff;display:inline-block"></span>Progresklima CZ
+            </button>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px">
+          <div class="fg2" style="position:relative">
+            <label>Zákazník (IČO nebo název)</label>
+            <input id="sl-zakaznik" autocomplete="off" placeholder="Název firmy nebo IČO…" oninput="slZakaznikInput(this.value)" onfocus="slZakaznikInput(this.value)">
+            <div id="sl-ares-dd" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid var(--border);border-radius:8px;box-shadow:0 4px 16px rgba(15,31,61,.12);z-index:300;max-height:200px;overflow-y:auto;margin-top:2px"></div>
+          </div>
+          <div class="fg2"><label>Termín provedení</label>
+            <input type="date" id="sl-termin"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:10px">
+          <div class="fg2"><label>Adresa zákazníka</label>
+            <input id="sl-adresa" autocomplete="off" placeholder="Ulice, město, PSČ"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px">
+          <div class="fg2"><label>IČO</label><input id="sl-ico" placeholder="12345678"></div>
+          <div class="fg2"><label>DIČ</label><input id="sl-dic" placeholder="CZ12345678"></div>
+        </div>
+        <div class="fg2" style="margin-bottom:10px;position:relative">
+          <label>Technik</label>
+          <input id="sl-technik" placeholder="Jméno technika" autocomplete="off"
+            oninput="slTechnikInput(this.value)" onfocus="slTechnikInput(this.value)">
+          <div id="sl-technik-dd" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid var(--border);border-radius:8px;box-shadow:0 4px 16px rgba(15,31,61,.12);z-index:300;max-height:200px;overflow-y:auto;margin-top:2px"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="fg2"><label>Datum zahájení (sd1)</label><input type="date" id="sl-sd1"></div>
+          <div class="fg2"><label>Datum ukončení (sd2)</label><input type="date" id="sl-sd2"></div>
+        </div>
+      </div>
+
+      <!-- STEP 1: Servisní práce -->
+      <div class="sl-panel" id="sl-step-1">
+        <div class="fg2">
+          <label>Popis provedených servisních prací</label>
+          <textarea id="sl-prace" rows="10" placeholder="Detailní popis všech provedených úkonů…" style="width:100%;resize:vertical"></textarea>
+        </div>
+      </div>
+
+      <!-- STEP 2: Položky a ceny -->
+      <div class="sl-panel" id="sl-step-2">
+        <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:12px">
+          <table style="width:100%;border-collapse:collapse" class="ceny-tbl">
+            <thead><tr>
+              <th style="text-align:left;padding:8px 10px;width:44%">Položka</th>
+              <th style="width:13%;text-align:center">Počet</th>
+              <th style="width:18%;text-align:center;color:#6abf3e">Cena/ks</th>
+              <th style="width:18%;text-align:center">Celkem</th>
+            </tr></thead>
+            <tbody id="sl-rows">
+              <tr style="border-bottom:1px solid var(--border)">
+                <td><input type="text"   id="sl-pol1" placeholder="Položka..." oninput="slCalc()"></td>
+                <td><input type="number" id="sl-poc1" min="0" step="1" oninput="slCalc()"></td>
+                <td><input type="number" id="sl-cen1" min="0" step="0.01" oninput="slCalc()"></td>
+                <td><input id="sl-cel1" readonly style="background:var(--locked)"></td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td><input type="text"   id="sl-pol2" placeholder="Položka..." oninput="slCalc()"></td>
+                <td><input type="number" id="sl-poc2" min="0" step="1" oninput="slCalc()"></td>
+                <td><input type="number" id="sl-cen2" min="0" step="0.01" oninput="slCalc()"></td>
+                <td><input id="sl-cel2" readonly style="background:var(--locked)"></td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td><input type="text"   id="sl-pol3" placeholder="Položka..." oninput="slCalc()"></td>
+                <td><input type="number" id="sl-poc3" min="0" step="1" oninput="slCalc()"></td>
+                <td><input type="number" id="sl-cen3" min="0" step="0.01" oninput="slCalc()"></td>
+                <td><input id="sl-cel3" readonly style="background:var(--locked)"></td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td><input type="text"   id="sl-pol4" placeholder="Položka..." oninput="slCalc()"></td>
+                <td><input type="number" id="sl-poc4" min="0" step="1" oninput="slCalc()"></td>
+                <td><input type="number" id="sl-cen4" min="0" step="0.01" oninput="slCalc()"></td>
+                <td><input id="sl-cel4" readonly style="background:var(--locked)"></td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td><input type="text"   id="sl-pol5" placeholder="Položka..." oninput="slCalc()"></td>
+                <td><input type="number" id="sl-poc5" min="0" step="1" oninput="slCalc()"></td>
+                <td><input type="number" id="sl-cen5" min="0" step="0.01" oninput="slCalc()"></td>
+                <td><input id="sl-cel5" readonly style="background:var(--locked)"></td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td><input type="text"   id="sl-pol6" placeholder="Položka..." oninput="slCalc()"></td>
+                <td><input type="number" id="sl-poc6" min="0" step="1" oninput="slCalc()"></td>
+                <td><input type="number" id="sl-cen6" min="0" step="0.01" oninput="slCalc()"></td>
+                <td><input id="sl-cel6" readonly style="background:var(--locked)"></td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td><input type="text"   id="sl-pol7" placeholder="Položka..." oninput="slCalc()"></td>
+                <td><input type="number" id="sl-poc7" min="0" step="1" oninput="slCalc()"></td>
+                <td><input type="number" id="sl-cen7" min="0" step="0.01" oninput="slCalc()"></td>
+                <td><input id="sl-cel7" readonly style="background:var(--locked)"></td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td><input type="text"   id="sl-pol8" placeholder="Položka..." oninput="slCalc()"></td>
+                <td><input type="number" id="sl-poc8" min="0" step="1" oninput="slCalc()"></td>
+                <td><input type="number" id="sl-cen8" min="0" step="0.01" oninput="slCalc()"></td>
+                <td><input id="sl-cel8" readonly style="background:var(--locked)"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin:16px 0 6px">Cestovní náklady</div>
+        <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:12px">
+          <table style="width:100%;border-collapse:collapse" class="ceny-tbl">
+            <tbody>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td><input type="text"   id="sl-elab1" style="font-style:italic" oninput="slCalc()"></td>
+                <td><input type="number" id="sl-epoc1" min="0" step="0.5" oninput="slCalc()"></td>
+                <td><input type="number" id="sl-ecen1" min="0" step="1" oninput="slCalc()"></td>
+                <td><input id="sl-ecel1" readonly style="background:var(--locked)"></td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td><input type="text"   id="sl-elab2" style="font-style:italic" oninput="slCalc()"></td>
+                <td><input type="number" id="sl-epoc2" min="0" step="0.5" oninput="slCalc()"></td>
+                <td><input type="number" id="sl-ecen2" min="0" step="1" oninput="slCalc()"></td>
+                <td><input id="sl-ecel2" readonly style="background:var(--locked)"></td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border)">
+                <td><input type="text"   id="sl-elab3" style="font-style:italic" oninput="slCalc()"></td>
+                <td><input type="number" id="sl-epoc3" min="0" step="0.5" oninput="slCalc()"></td>
+                <td><input type="number" id="sl-ecen3" min="0" step="1" oninput="slCalc()"></td>
+                <td><input id="sl-ecel3" readonly style="background:var(--locked)"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="total-bar"><span>Cena bez DPH</span><strong id="sl-total">—</strong></div>
+        <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="fg2"><label>DUZP</label><input type="date" id="sl-duzp"></div>
+        </div>
+      </div>
+
+      <!-- STEP 3: Poznámky -->
+      <div class="sl-panel" id="sl-step-3">
+        <div class="fg2" style="margin-bottom:12px">
+          <label>Poznámky pro zákazníka</label>
+          <textarea id="sl-pozn" rows="6" placeholder="Doporučení, upozornění…" style="width:100%;resize:vertical"></textarea>
+        </div>
+        <div class="fg2">
+          <label>Interní komentář <span style="font-weight:400;color:var(--muted)">(pouze pro kancelář)</span></label>
+          <textarea id="sl-komentar" rows="4" placeholder="Interní poznámky…" style="width:100%;resize:vertical"></textarea>
+        </div>
+      </div>
+
+      <!-- STEP 4: Fotografie -->
+      <div class="sl-panel" id="sl-step-4">
+        <div style="border:2px dashed var(--border);border-radius:10px;padding:24px;text-align:center;cursor:pointer;margin-bottom:16px"
+          onclick="document.getElementById('sl-foto-inp').click()"
+          ondragover="event.preventDefault()" ondrop="slHandleDrop(event)">
+          <div style="font-size:28px;margin-bottom:8px">📷</div>
+          <div style="font-size:13px;font-weight:600;color:var(--navy)">Klikněte nebo přetáhněte fotografie</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">JPG, PNG — bez omezení počtu</div>
+        </div>
+        <input type="file" id="sl-foto-inp" multiple accept="image/*" capture="environment" style="display:none" onchange="slAddPhotos(this.files)">
+        <div id="sl-photos-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px"></div>
+      </div>
+
+      <!-- STEP 5: Podpisy -->
+      <div class="sl-panel" id="sl-step-5">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:8px">Podpis technika</div>
+            <canvas id="sl-sig1" width="300" height="150"
+              style="border:1.5px solid var(--border);border-radius:8px;background:#fafbfc;touch-action:none;width:100%;display:block"></canvas>
+            <button onclick="slClearSig(1)" style="margin-top:6px;font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer">✕ Vymazat</button>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:8px">Podpis zákazníka</div>
+            <canvas id="sl-sig2" width="300" height="150"
+              style="border:1.5px solid var(--border);border-radius:8px;background:#fafbfc;touch-action:none;width:100%;display:block"></canvas>
+            <button onclick="slClearSig(2)" style="margin-top:6px;font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer">✕ Vymazat</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 6: Odeslat & Tisk -->
+      <div class="sl-panel" id="sl-step-6">
+        <div id="sl-summary" style="background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:20px;font-size:13px;line-height:1.8"></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px">
+          <label style="display:flex;align-items:center;gap:7px;font-size:12px;cursor:pointer;padding:6px 10px;background:#f8fafc;border:1px solid var(--border);border-radius:7px">
+            <input type="checkbox" id="sl-print-photos" style="width:14px;height:14px;accent-color:var(--blue)">
+            Zahrnout fotodokumentaci
+          </label>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="slPrint()" style="display:flex;align-items:center;gap:7px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Vytisknout servisní list
+          </button>
+          <button class="btn btn-green" onclick="slSaveAndPrint()" style="display:flex;align-items:center;gap:7px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Uložit do zakázky & Tisk
+          </button>
+        </div>
+        <div id="sl-save-status" style="font-size:12px;color:var(--muted);margin-top:8px"></div>
+      </div>
+
+    </div><!-- /sl-body -->
+
+    <!-- Footer navigace -->
+    <div style="position:sticky;bottom:0;background:#f8fafc;border-top:1px solid var(--border);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px">
+      <button id="sl-btn-prev" onclick="slGoTo(window._slStep-1)"
+        style="padding:9px 20px;border-radius:8px;border:1.5px solid var(--border);background:#fff;font-size:13px;font-weight:600;cursor:pointer;color:var(--text)">
+        ← Zpět
+      </button>
+      <span id="sl-step-label" style="font-size:12px;color:var(--muted);font-weight:600">Krok 1 z 7</span>
+      <button id="sl-btn-next" onclick="slGoTo(window._slStep+1)"
+        style="padding:9px 20px;border-radius:8px;border:none;background:#6abf3e;font-size:13px;font-weight:700;cursor:pointer;color:#fff" id="sl-btn-next">
+        Pokračovat →
+      </button>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ══ KANCELÁŘ APP ═══════════════════════════════════════════ -->
+
+<div id="app-kancelar" style="display:none;flex-direction:column;min-height:100vh">
+  <div class="topbar">
+    <img class="topbar-logo" src="/img/logo-aceuro.jpeg" alt="AC EURO">
+    <div class="topbar-right">
+      <span class="badge-admin">Kancelář</span>
+      <span id="role-badge" style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;margin-right:6px"></span><div class="user-info">
+        <div class="av" id="user-av">?</div>
+        <span id="user-name"></span>
+      </div>
+      <button class="btn-out" onclick="doSignOut()">Odhlásit</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('orders')">📋 Zakázky</button>
+    <button class="tab-btn" onclick="switchTab('dash')">📊 Přehled</button>
+    <button class="tab-btn" onclick="switchTab('sklad')">📦 Sklad</button>
+    <button class="tab-btn" onclick="switchTab('sablony')">📄 Šablony</button>
+    <button class="tab-btn" onclick="switchTab('zakaznici')">👥 Zákazníci</button>
+    <button class="tab-btn" onclick="switchTab('vykaz')">📋 Výkaz práce</button>
+    <button class="tab-btn" onclick="switchTab('cenik')">💲 Ceník</button>
+    <button class="tab-btn" onclick="switchTab('galerie')">📷 Galerie</button>
+    <button class="tab-btn admin-only" onclick="switchTab('zakazky-typy')">📁 Typy zakázek</button>
+    <button class="tab-btn admin-only" onclick="switchTab('users')">👤 Technici</button>
+    <button class="tab-btn admin-only" onclick="switchTab('historie')">📈 Historie</button>
+  </div>
+
+  <!-- TAB: ORDERS -->
+  <div class="tab-panel active" id="tab-orders">
+    <div class="layout">
+      <div class="list-panel">
+        <div class="list-hdr">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
+            <h2>Zakázky <span id="count-badge" style="font-size:11px;color:var(--muted);font-weight:400"></span></h2>
+            <button onclick="openAddZakazkaModal()" style="padding:6px 12px;background:var(--green2);color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Přidat
+            </button>
+            <button class="btn btn-ghost" onclick="document.getElementById('import-modal').classList.add('open')" style="font-size:11px;padding:5px 10px" title="Import ze CSV/Excel">📥</button>
+            <button class="btn btn-ghost" onclick="document.getElementById('notif-settings-modal').classList.add('open')" style="font-size:11px;padding:5px 10px" title="Nastavení notifikací">🔔</button>
+          </div>
+          <div id="bulk-bar" style="display:none;padding:8px 12px;background:#eff6ff;border-bottom:1px solid #bfdbfe;align-items:center;gap:8px;flex-wrap:wrap">
+          <span id="bulk-count" style="font-size:12px;font-weight:700;color:#1d4ed8">0 vybráno</span>
+          <select id="bulk-stav-sel" class="filter-sel" style="font-size:11px;padding:4px 8px">
+            <option value="">-- Změnit stav --</option>
+            <option value="ke zpracování">👁 Ke zpracování</option>
+            <option value="rozpracovaná">🔧 Rozpracované</option>
+            <option value="na cestě">🚗 Na cestě</option>
+            <option value="zpracovaná">✅ Zpracované</option>
+            <option value="fakturovaná">🧾 Fakturované</option>
+            <option value="zaplacena">💰 Zaplacené</option>
+          </select>
+          <button onclick="bulkChangeStav()" class="btn btn-primary" style="font-size:11px;padding:5px 12px">Použít</button>
+          <button onclick="bulkSelectAll()" class="btn btn-ghost" style="font-size:11px;padding:5px 10px">Vybrat vše</button>
+          <button onclick="bulkClear()" class="btn btn-ghost" style="font-size:11px;padding:5px 10px">Zrušit</button>
+        </div>
+        <div class="search-row">
+            <input class="search-inp" id="search-inp" placeholder="🔍 Hledat..." oninput="renderList()">
+            <select class="filter-sel" id="filter-stav" onchange="renderList()">
+              <option value="">Vše</option>
+              <option value="nová">🆕 Nové</option>
+              <option value="ke zpracování">👁 Ke zpracování</option>
+              <option value="rozpracovaná">🔧 Rozpracované</option>
+              <option value="zpracovaná">✅ Zpracované</option>
+              <option value="na cestě">🚗 Na cestě</option>
+              <option value="fakturovaná">🧾 Fakturované</option>
+              <option value="zaplacena">💰 Zaplacené</option>
+            </select>
+          </div>
+          <div class="date-filter">
+            <label>Od<input type="date" id="filter-od" onchange="renderList()"></label>
+            <label>Do<input type="date" id="filter-do" onchange="renderList()"></label>
+            <select class="filter-sel" id="filter-tech" onchange="renderList()" style="margin-top:auto;align-self:flex-end">
+              <option value="">Vš. technici</option>
+            </select>
+          </div>
+        </div>
+        <div class="list-scroll" id="list-scroll">
+          <div class="list-status" id="list-status">⏳ Načítám zakázky...</div>
+        </div>
+      </div>
+      <div class="detail-panel" id="detail-panel">
+        <div class="detail-empty" id="detail-empty">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <div>Vyberte zakázku ze seznamu</div>
+        </div>
+        <div class="detail-inner" id="detail-inner" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: DASHBOARD -->
+  <div class="tab-panel" id="tab-dash">
+    <div style="padding:20px;overflow-y:auto">
+      <!-- KPI ROW — hlavní metriky -->
+      <div class="stats-grid" id="stats-grid"></div>
+
+      <!-- ALERT PANEL — zakázky po termínu, nezaplacené -->
+      <div id="kpi-alerts" style="margin-bottom:16px;display:none">
+        <div id="kpi-alerts-inner" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+
+      <!-- REMINDERS -->
+      <div id="reminders-panel" style="display:none;margin-bottom:16px;padding:14px 16px;background:linear-gradient(135deg,#fff9f0,#fffbeb);border:1.5px solid #fde68a;border-radius:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <span style="font-size:13px;font-weight:700;color:#92400e">⏰ Blížící se termíny a připomínky</span>
+          <span id="reminders-count" style="font-size:11px;color:#92400e;font-weight:600"></span>
+        </div>
+        <div id="reminders-list" style="display:flex;flex-direction:column;gap:6px"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px" id="charts-row">
+        <div class="chart-wrap"><h3>Zakázky dle technika</h3><div class="chart-bar-list" id="chart-technici"></div></div>
+        <div class="chart-wrap"><h3>Stav zakázek (tento měsíc)</h3><div class="chart-bar-list" id="chart-stavy"></div></div>
+      </div>
+      <div class="chart-wrap">
+        <h3>Posledních 30 dní — počet zakázek</h3>
+        <canvas id="trend-chart" height="80"></canvas>
+      </div>
+      <div class="chart-wrap" style="margin-top:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+          <h3 style="margin:0">📅 Měsíční obrat (posledních 12 měsíců)</h3>
+          <div style="display:flex;gap:6px">
+            <button onclick="setMonthlyFirma('all')" id="mf-all" style="font-size:11px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--green);background:var(--green);color:#fff;cursor:pointer;font-weight:700">Vše</button>
+            <button onclick="setMonthlyFirma('aceuro')" id="mf-aceuro" style="font-size:11px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--text);cursor:pointer;font-weight:600">AC EURO</button>
+            <button onclick="setMonthlyFirma('progres')" id="mf-progres" style="font-size:11px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:var(--text);cursor:pointer;font-weight:600">Progresklima</button>
+          </div>
+        </div>
+        <canvas id="monthly-chart" height="80"></canvas>
+        <div id="monthly-table" style="margin-top:10px;font-size:12px"></div>
+      </div>
+      <div class="chart-wrap" style="margin-top:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <h3 style="margin:0">💰 Neuhrazené zakázky</h3>
+          <span id="unpaid-count" style="font-size:11px;color:var(--muted)"></span>
+        </div>
+        <div id="unpaid-list"></div>
+      </div>
+      <!-- VÝKONNOST TECHNIKŮ -->
+      <div class="chart-wrap" style="margin-top:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <h3 style="margin:0">👥 Výkonnost techniků</h3>
+          <select id="dash-tech-period" onchange="renderDashboard()" style="font-size:11px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--card)">
+            <option value="month">Tento měsíc</option>
+            <option value="quarter">Kvartál</option>
+            <option value="year">Rok</option>
+          </select>
+        </div>
+        <div id="tech-performance-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px"></div>
+      </div>
+
+      <!-- PRŮMĚRNÁ DOBA + HODNOCENÍ -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">
+        <div class="chart-wrap">
+          <h3 style="margin-bottom:10px">⏱ Průměrná doba zpracování</h3>
+          <div id="avg-time-stats"></div>
+        </div>
+        <div class="chart-wrap">
+          <h3 style="margin-bottom:10px">⭐ Průměrné hodnocení zákazníků</h3>
+          <div id="avg-hodnoceni-stats"></div>
+        </div>
+      </div>
+
+      <!-- PŘEHLED NEJNOVĚJŠÍCH -->
+      <div class="chart-wrap" style="margin-top:16px">
+        <h3>Nejnovější zakázky</h3>
+        <table class="recent-tbl" id="recent-tbl">
+          <thead><tr><th>Zakázka</th><th>Technik</th><th>Stav</th><th>Datum</th><th>Cena</th></tr></thead>
+          <tbody id="recent-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: USERS -->
+  <div class="tab-panel" id="tab-zakazky-typy">
+    <div style="padding:20px;overflow-y:auto;height:100%">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <h2 style="font-size:16px;font-weight:700">Typy zakázek <span id="zt-count" style="font-size:11px;color:var(--muted);font-weight:400"></span></h2>
+        <div style="font-size:11px;color:var(--muted)">Technici si vybírají z tohoto seznamu při zadávání nové zakázky</div>
+      </div>
+
+      <!-- Add new type form -->
+      <div style="background:#f8fafc;border:1.5px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px">
+        <div style="font-size:12px;font-weight:700;color:var(--n1);margin-bottom:10px">➕ Přidat typ zakázky</div>
+        <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;margin-bottom:8px">
+          <input id="zt-nazev" placeholder="Název zakázky *" style="padding:9px 12px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;font-family:inherit">
+          <input id="zt-cislo" placeholder="Číslo servisu" style="padding:9px 12px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;font-family:inherit">
+          <input id="zt-zakaznik" placeholder="Zákazník" style="padding:9px 12px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;font-family:inherit">
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button id="zt-add-btn" onclick="addZakazkaTyp()" style="padding:9px 18px;background:var(--blue);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer">Přidat</button>
+          <div id="zt-status" style="font-size:12px"></div>
+        </div>
+      </div>
+
+      <!-- List of types -->
+      <div id="zt-list" style="display:flex;flex-direction:column;gap:6px">
+        <div style="font-size:12px;color:var(--muted);padding:12px;text-align:center">Načítám…</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-users">
+    <div style="padding:20px;overflow-y:auto">
+      <div class="users-hdr" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <h2>Správa uživatelů a rolí</h2>
+        <div style="display:flex;gap:8px">
+          <select id="user-filter-role" class="filter-sel" onchange="reloadUserList()">
+            <option value="">Všechny role</option>
+            <option value="admin">👑 Admin</option>
+            <option value="kancelar">🏢 Kancelář</option>
+            <option value="dispatcher">📋 Dispečer</option>
+            <option value="technik">🔧 Technik</option>
+            <option value="pending">⏳ Čekající</option>
+          </select>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:12px;padding:8px 12px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px">
+        💡 <strong>Role:</strong> Admin = vše · Kancelář = správa zakázek · Dispečer = přiřazování + kontrola · Technik = terén
+      </div>
+      <div class="user-list" id="user-list"><div style="font-size:12px;color:var(--muted)">Načítám...</div></div>
+      <div class="add-user-form">
+        <h3>➕ Přidat nového technika</h3>
+        <div class="form-row">
+          <div class="form-inp"><label>Jméno a příjmení</label><input id="nu-name" placeholder="Jan Novák"></div>
+          <div class="form-inp"><label>E-mail</label><input type="email" id="nu-email" placeholder="technik@aceuro.cz"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-inp">
+            <label>Role uživatele</label>
+            <select id="nu-role" class="filter-sel" style="width:100%">
+              <option value="technik">🔧 Technik (terén)</option>
+              <option value="kancelar">💼 Kancelář (základní)</option>
+              <option value="dispatcher">📋 Dispečer (zadávání zakázek)</option>
+              <option value="koordinator">🔄 Koordinátor (správa průběhu)</option>
+              <option value="fakturant">🧾 Fakturant (fakturace a platby)</option>
+              <option value="admin">👑 Admin (plný přístup)</option>
+            </select>
+          </div>
+          <div class="form-inp">
+            <label>Notifikace e-mailem</label>
+            <input id="nu-notif-email" type="email" placeholder="jan@firma.cz (volitelné)">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-inp"><label>Heslo (min. 6 znaků)</label><input type="password" id="nu-pass" placeholder="••••••••"></div>
+          <div class="form-inp"><label>Potvrdit heslo</label><input type="password" id="nu-pass2" placeholder="••••••••"></div>
+        </div>
+        <div class="fg" style="margin-bottom:8px"><label>Role</label><select id="nu-role" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;background:#fff"><option value="technik">Technik</option><option value="kancelar">Kancel&aacute;&rcaron;</option><option value="admin">Admin</option></select></div>
+        <button id="nu-btn" class="btn btn-green" onclick="addUser()">Vytvo&rcaron;it &uacute;&ccaron;et</button>
+        <div class="add-status" id="add-status"></div>
+        <div id="users-list" style="margin-top:14px;border:1px solid #e8ecf2;border-radius:8px;overflow:hidden;background:#fff;min-height:4px"></div>
+        <div id="pending-section" class="admin-only" style="display:none;margin-top:14px"><div style="font-size:13px;font-weight:700;color:#b45309;margin-bottom:8px">&#9203; Schvalte nov&eacute; registrace</div><div id="pending-list" style="border:1px solid #fcd34d;border-radius:8px;overflow:hidden;background:#fffbf0"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: HISTORIE TECHNIKŮ -->
+<div class="tab-panel" id="tab-historie">
+  <div style="padding:20px;height:100%;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <h2 style="font-size:16px;font-weight:700;color:var(--navy)">Historie techniků</h2>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select id="hist-technik-sel" onchange="renderHistorie()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:#fff;min-width:180px">
+          <option value="">— Všichni technici —</option>
+        </select>
+        <select id="hist-period-sel" onchange="renderHistorie()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:#fff">
+          <option value="30">Posledních 30 dní</option>
+          <option value="90">Posledních 90 dní</option>
+          <option value="365">Poslední rok</option>
+          <option value="0">Vše</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Stats cards -->
+    <div id="hist-stats" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:20px"></div>
+
+    <!-- Timeline -->
+    <div id="hist-timeline"></div>
+  </div>
+</div>
+
+  <!-- TAB: ZÁKAZNÍCI -->
+  <div class="tab-panel" id="tab-zakaznici">
+    <div style="display:flex;height:100%;min-height:0">
+      <!-- Levý seznam -->
+      <div style="width:320px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--card)">
+        <div style="padding:14px 14px 8px;border-bottom:1px solid var(--border);flex-shrink:0">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <h2 style="font-size:14px;font-weight:700;color:var(--navy)">👥 Zákazníci</h2>
+            <button onclick="openZakaznikModal()" class="btn btn-green" style="font-size:11px;padding:5px 12px">+ Přidat</button>
+          </div>
+          <input id="zak-search" class="search-inp" placeholder="🔍 Hledat zákazníka…" oninput="renderZakaznici()" style="width:100%;box-sizing:border-box">
+          <div style="display:flex;gap:6px;margin-top:6px">
+            <select id="zak-filter-typ" class="filter-sel" style="flex:1;font-size:11px" onchange="renderZakaznici()">
+              <option value="">Všechny typy</option>
+              <option value="firma">🏢 Firmy</option>
+              <option value="fyzicka">👤 Fyzické osoby</option>
+              <option value="vip">⭐ VIP</option>
+            </select>
+          </div>
+          <div id="zak-count" style="font-size:10px;color:var(--muted);margin-top:6px"></div>
+        </div>
+        <div id="zak-list" style="overflow-y:auto;flex:1"></div>
+      </div>
+      <!-- Pravý detail -->
+      <div style="flex:1;overflow-y:auto;background:var(--bg)">
+        <div id="zak-detail-empty" style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:12px;color:var(--muted)">
+          <div style="font-size:40px">👥</div>
+          <div style="font-size:14px;font-weight:600">Vyberte zákazníka ze seznamu</div>
+          <div style="font-size:12px">nebo přidejte nového tlačítkem +</div>
+        </div>
+        <div id="zak-detail" style="display:none;padding:20px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: VÝKAZ PRÁCE -->
+  <div class="tab-panel" id="tab-vykaz">
+    <div style="padding:20px;overflow-y:auto;height:100%">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <h2 style="font-size:16px;font-weight:700;color:var(--navy)">📋 Výkaz práce</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <select id="vykaz-technik" class="filter-sel" onchange="renderVykaz()">
+            <option value="">Všichni technici</option>
+          </select>
+          <select id="vykaz-period" class="filter-sel" onchange="renderVykaz()">
+            <option value="this-month">Tento měsíc</option>
+            <option value="last-month">Minulý měsíc</option>
+            <option value="this-week">Tento týden</option>
+            <option value="last-week">Minulý týden</option>
+            <option value="custom">Vlastní rozsah</option>
+          </select>
+          <div id="vykaz-custom-range" style="display:none;gap:6px;align-items:center;display:none">
+            <input type="date" id="vykaz-od" class="filter-sel" style="padding:6px 8px">
+            <span style="color:var(--muted)">—</span>
+            <input type="date" id="vykaz-do" class="filter-sel" style="padding:6px 8px">
+            <button onclick="renderVykaz()" class="btn btn-primary" style="font-size:11px;padding:5px 10px">Použít</button>
+          </div>
+          <button onclick="printVykaz()" class="btn btn-ghost" style="font-size:11px;display:flex;align-items:center;gap:5px">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Tisk / PDF
+          </button>
+          <button onclick="exportVykazCSV()" class="btn btn-ghost" style="font-size:11px">Export CSV</button>
+        </div>
+      </div>
+      <!-- Summary karty -->
+      <div id="vykaz-summary" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:16px"></div>
+      <!-- Tabulka -->
+      <div id="vykaz-table-wrap" style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:12px" id="vykaz-tbl">
+          <thead id="vykaz-thead"></thead>
+          <tbody id="vykaz-tbody"></tbody>
+        </table>
+      </div>
+      <div id="vykaz-empty" style="text-align:center;padding:40px;color:var(--muted);display:none">Žádné zakázky v tomto období</div>
+      <!-- Schválení -->
+      <div id="vykaz-approval" style="margin-top:16px;padding:14px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;display:none">
+        <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:10px">Schválení výkazu</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button onclick="submitVykaz()" class="btn btn-green" style="font-size:12px">✅ Odeslat ke schválení</button>
+          <button onclick="approveVykaz()" class="btn btn-primary" style="font-size:12px;display:none" id="vykaz-approve-btn">👑 Schválit výkaz</button>
+        </div>
+        <div id="vykaz-status" style="font-size:11px;color:var(--muted);margin-top:8px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: CENÍK -->
+  <div class="tab-panel" id="tab-cenik">
+    <div style="padding:20px;overflow-y:auto;height:100%">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <h2 style="font-size:16px;font-weight:700;color:var(--navy)">💲 Ceník</h2>
+        <div style="display:flex;gap:8px">
+          <input id="cenik-search" class="search-inp" placeholder="🔍 Hledat položku..." style="max-width:220px" oninput="renderCenik()">
+          <select id="cenik-kat" class="filter-sel" onchange="renderCenik()">
+            <option value="">Všechny kategorie</option>
+          </select>
+          <button onclick="openCenikModal()" class="btn btn-green" style="font-size:12px">+ Přidat položku</button>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px;padding:10px 14px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px">
+        💡 Položky ceníku se automaticky nabízí jako autocomplete při vyplňování zakázky.
+      </div>
+      <div id="cenik-table-wrap" style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead><tr style="background:#f8fafc;border-bottom:2px solid var(--border)">
+            <th style="text-align:left;padding:10px 12px;font-weight:700">Název položky</th>
+            <th style="text-align:left;padding:10px 12px;font-weight:700">Kategorie</th>
+            <th style="text-align:right;padding:10px 12px;font-weight:700;color:var(--green)">Cena Kč/ks</th>
+            <th style="text-align:left;padding:10px 12px;font-weight:700">Jednotka</th>
+            <th style="padding:10px 12px"></th>
+          </tr></thead>
+          <tbody id="cenik-tbody"></tbody>
+        </table>
+      </div>
+      <div id="cenik-empty" style="text-align:center;padding:40px;color:var(--muted);display:none">Ceník je prázdný. Přidejte první položku.</div>
+    </div>
+  </div>
+
+  <!-- TAB: GALERIE FOTEK -->
+  <div class="tab-panel" id="tab-galerie">
+    <div style="padding:20px;overflow-y:auto;height:100%">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <h2 style="font-size:16px;font-weight:700;color:var(--navy)">📷 Galerie fotodokumentace</h2>
+        <div style="display:flex;gap:8px;align-items:center">
+          <select id="galerie-technik" class="filter-sel" onchange="renderGalerie()">
+            <option value="">Všichni technici</option>
+          </select>
+          <input type="month" id="galerie-month" class="filter-sel" style="padding:6px 8px" onchange="renderGalerie()">
+        </div>
+      </div>
+      <div id="galerie-stats" style="font-size:12px;color:var(--muted);margin-bottom:14px"></div>
+      <div id="galerie-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px"></div>
+      <div id="galerie-empty" style="text-align:center;padding:40px;color:var(--muted);display:none">Žádné fotografie v tomto období</div>
+    </div>
+  </div>
+
+  <!-- TAB: SKLAD -->
+  <div class="tab-panel" id="tab-sklad">
+    <div style="padding:20px;overflow-y:auto;height:100%">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <h2 style="font-size:16px;font-weight:700;color:var(--navy)">📦 Sklad materiálu</h2>
+        <button onclick="openSkladModal()" class="btn btn-green" style="display:flex;align-items:center;gap:6px;font-size:12px">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Přidat položku
+        </button>
+      </div>
+      <div style="margin-bottom:14px;display:flex;gap:8px;flex-wrap:wrap">
+        <input id="sklad-search" placeholder="🔍 Hledat položku..." class="search-inp" style="max-width:280px" oninput="renderSklad()">
+        <select id="sklad-filter-cat" class="filter-sel" onchange="renderSklad()">
+          <option value="">Všechny kategorie</option>
+        </select>
+      </div>
+      <div id="sklad-table-wrap" style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead><tr style="background:#f8fafc;border-bottom:2px solid var(--border)">
+            <th style="text-align:left;padding:10px 12px;font-weight:700;color:var(--navy)">Název</th>
+            <th style="text-align:left;padding:10px 12px;font-weight:700;color:var(--navy)">Kategorie</th>
+            <th style="text-align:center;padding:10px 12px;font-weight:700;color:var(--navy)">Skladem</th>
+            <th style="text-align:center;padding:10px 12px;font-weight:700;color:var(--navy)">Min. zásoby</th>
+            <th style="text-align:right;padding:10px 12px;font-weight:700;color:var(--green)">Cena/ks</th>
+            <th style="padding:10px 12px"></th>
+          </tr></thead>
+          <tbody id="sklad-tbody"></tbody>
+        </table>
+      </div>
+      <div id="sklad-empty" style="text-align:center;padding:40px;color:var(--muted);font-size:13px;display:none">
+        Sklad je prázdný. Přidejte první položku.
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: ŠABLONY -->
+  <div class="tab-panel" id="tab-sablony">
+    <div style="padding:20px;overflow-y:auto;height:100%">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <h2 style="font-size:16px;font-weight:700;color:var(--navy)">📄 Šablony zakázek</h2>
+        <button onclick="openSablonaModal()" class="btn btn-green" style="display:flex;align-items:center;gap:6px;font-size:12px">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nová šablona
+        </button>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:16px;padding:10px 14px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px">
+        💡 Šablony umožňují předvyplnit opakující se zakázky (servisní prohlídky, čistění filtrů apod.). Z šablony lze okamžitě vytvořit novou zakázku.
+      </div>
+      <div id="sablony-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px"></div>
+      <div id="sablony-empty" style="text-align:center;padding:40px;color:var(--muted);font-size:13px;display:none">
+        Žádné šablony. Vytvořte první šablonu.
+      </div>
+    </div>
+  </div>
+
+
+<!-- ══ SOUHRN ZAKÁZKY MODAL ══════════════════════ -->
+<div class="modal-overlay" id="souhrn-modal" style="z-index:1050">
+  <div class="modal-box" style="max-width:700px;max-height:92vh;display:flex;flex-direction:column;padding:0;overflow:hidden">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--navy)">
+      <span style="font-size:14px;font-weight:700;color:#fff">📋 Souhrn zakázky</span>
+      <div style="display:flex;gap:8px">
+        <button onclick="printSouhrn()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:7px;padding:5px 12px;cursor:pointer;font-size:12px;font-family:inherit">🖨 Tisk</button>
+        <button onclick="closeModal('souhrn-modal')" style="background:none;border:none;color:rgba(255,255,255,.7);font-size:22px;cursor:pointer;line-height:1">×</button>
+      </div>
+    </div>
+    <div id="souhrn-body" style="flex:1;overflow-y:auto;padding:20px;background:var(--bg)"></div>
+  </div>
+</div>
+
+<!-- ══ FOTO ANOTAČNÍ MODAL ════════════════════════ -->
+<div class="modal-overlay" id="annot-modal" style="z-index:1100">
+  <div class="modal-box" style="max-width:820px;width:96vw;max-height:95vh;display:flex;flex-direction:column;padding:0;overflow:hidden">
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--card)">
+      <h3 style="font-size:14px;font-weight:700">✏️ Anotace fotografie</h3>
+      <div style="display:flex;gap:6px;align-items:center">
+        <!-- Nástroje -->
+        <select id="annot-tool" style="font-size:11px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:#fff">
+          <option value="pen">🖊 Pero</option>
+          <option value="arrow">➡ Šipka</option>
+          <option value="rect">⬜ Obdélník</option>
+          <option value="circle">⭕ Kruh</option>
+          <option value="text">🔤 Text</option>
+          <option value="eraser">⬜ Guma</option>
+        </select>
+        <input type="color" id="annot-color" value="#ff0000" style="width:32px;height:28px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px">
+        <select id="annot-size" style="font-size:11px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:#fff">
+          <option value="2">Tenká</option>
+          <option value="4" selected>Střední</option>
+          <option value="8">Silná</option>
+        </select>
+        <button onclick="annotUndo()" style="font-size:11px;padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:#fff;cursor:pointer" title="Zpět (Ctrl+Z)">↩ Zpět</button>
+        <button onclick="annotClear()" style="font-size:11px;padding:4px 10px;border:1px solid #fecaca;border-radius:6px;background:#fff5f5;color:#dc2626;cursor:pointer">🗑 Vše</button>
+        <button onclick="closeModal('annot-modal')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);margin-left:4px">×</button>
+      </div>
+    </div>
+    <!-- Canvas -->
+    <div style="flex:1;overflow:hidden;background:#1a1a2e;display:flex;align-items:center;justify-content:center;min-height:300px">
+      <canvas id="annot-canvas" style="max-width:100%;max-height:100%;cursor:crosshair;touch-action:none"></canvas>
+    </div>
+    <!-- Footer -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid var(--border);flex-shrink:0;background:var(--card)">
+      <span style="font-size:11px;color:var(--muted)">Kreslete myší nebo prstem · Ctrl+Z = zpět</span>
+      <div style="display:flex;gap:8px">
+        <button onclick="closeModal('annot-modal')" class="btn btn-ghost">Zrušit</button>
+        <button onclick="saveAnnotation()" class="btn btn-green" style="display:flex;align-items:center;gap:6px">
+          💾 Uložit anotaci
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ZÁKAZNÍCI MODAL (přidat/upravit) ═══════════════ -->
+<div class="modal-overlay" id="zakaznik-modal">
+  <div class="modal-box" style="max-width:520px;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h3 id="zakaznik-modal-title">Přidat zákazníka</h3>
+      <button onclick="closeModal('zakaznik-modal')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">×</button>
+    </div>
+    <input type="hidden" id="zakaznik-edit-id">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div class="fg2" style="grid-column:1/-1"><label>Název / Jméno *</label><input id="zak-nazev" placeholder="Firma s.r.o. nebo Jan Novák"></div>
+      <div class="fg2"><label>IČO</label><input id="zak-ico" placeholder="12345678" oninput="if(this.value.length===8)aresLookupZak()"></div>
+      <div class="fg2"><label>DIČ</label><input id="zak-dic" placeholder="CZ12345678"></div>
+      <div class="fg2" style="grid-column:1/-1"><label>Adresa</label><input id="zak-adresa" placeholder="Ulice 123, Praha 1"></div>
+      <div class="fg2"><label>Telefon</label><input id="zak-tel" type="tel" placeholder="+420 777 888 999"></div>
+      <div class="fg2"><label>E-mail</label><input id="zak-email" type="email" placeholder="info@firma.cz"></div>
+      <div class="fg2"><label>Kontaktní osoba</label><input id="zak-kontakt" placeholder="Ing. Novák"></div>
+      <div class="fg2"><label>Typ</label>
+        <select id="zak-typ" class="filter-sel" style="width:100%">
+          <option value="firma">🏢 Firma</option>
+          <option value="fyzicka">👤 Fyzická osoba</option>
+          <option value="vip">⭐ VIP</option>
+        </select>
+      </div>
+      <div class="fg2" style="grid-column:1/-1"><label>Poznámky</label>
+        <textarea id="zak-pozn" rows="2" style="width:100%;resize:vertical" placeholder="Specifické požadavky, přístupové informace…"></textarea>
+      </div>
+    </div>
+    <div class="fg2" style="margin-bottom:12px">
+      <label>📋 Protokol pro tohoto zákazníka</label>
+      <select id="zak-protokol" style="width:100%;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:var(--card)">
+        <option value="">— Standardní (bez speciálního protokolu) —</option>
+        <option value="kaufland_rocni">Kaufland — Roční revize (05A, březen/duben)</option>
+        <option value="kaufland_pulrocni">Kaufland — Půlroční revize (05B, září/říjen)</option>
+        <option value="minobr">Ministerstvo obrany — Zápis o údržbě KJ</option>
+      </select>
+    </div>
+    <div id="zak-smlouva-row" class="fg2" style="margin-bottom:12px;display:none">
+      <label id="zak-smlouva-label">Číslo smlouvy / rámcové dohody</label>
+      <input id="zak-smlouva" placeholder="R-878-2745-2023-C nebo 25106000371">
+    </div>
+    <div class="modal-foot">
+      <button onclick="closeModal('zakaznik-modal')" class="btn btn-ghost">Zrušit</button>
+      <button onclick="saveZakaznik()" class="btn btn-green">Uložit zákazníka</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ HODNOCENÍ ZÁKAZNÍKA MODAL ══════════════════ -->
+<div class="modal-overlay" id="hodnoceni-modal">
+  <div class="modal-box" style="max-width:460px;text-align:center">
+    <div style="font-size:36px;margin-bottom:8px">⭐</div>
+    <h3 style="margin-bottom:4px" id="hodnoceni-nazev">Hodnocení zakázky</h3>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:20px" id="hodnoceni-sub">Jak jste spokojeni se servisním zásahem?</div>
+    <input type="hidden" id="hodnoceni-id">
+    <!-- Hvězdičky -->
+    <div id="hvezdicky" style="display:flex;justify-content:center;gap:8px;margin-bottom:16px">
+      <span id="hv1" onclick="setHvezda(1)" onmouseenter="hoverHvezda(1)" onmouseleave="hoverHvezda(0)" style="font-size:40px;cursor:pointer;transition:transform .15s;user-select:none">☆</span>
+      <span id="hv2" onclick="setHvezda(2)" onmouseenter="hoverHvezda(2)" onmouseleave="hoverHvezda(0)" style="font-size:40px;cursor:pointer;transition:transform .15s;user-select:none">☆</span>
+      <span id="hv3" onclick="setHvezda(3)" onmouseenter="hoverHvezda(3)" onmouseleave="hoverHvezda(0)" style="font-size:40px;cursor:pointer;transition:transform .15s;user-select:none">☆</span>
+      <span id="hv4" onclick="setHvezda(4)" onmouseenter="hoverHvezda(4)" onmouseleave="hoverHvezda(0)" style="font-size:40px;cursor:pointer;transition:transform .15s;user-select:none">☆</span>
+      <span id="hv5" onclick="setHvezda(5)" onmouseenter="hoverHvezda(5)" onmouseleave="hoverHvezda(0)" style="font-size:40px;cursor:pointer;transition:transform .15s;user-select:none">☆</span>
+    </div>
+    <div class="fg2" style="margin-bottom:12px;text-align:left">
+      <label>Komentář (volitelné)</label>
+      <textarea id="hodnoceni-text" rows="3" placeholder="Co se povedlo, co by šlo lépe…" style="resize:none"></textarea>
+    </div>
+    <div class="fg2" style="margin-bottom:16px;text-align:left">
+      <label>Vaše jméno (volitelné)</label>
+      <input id="hodnoceni-jmeno" placeholder="Jan Novák">
+    </div>
+    <div class="modal-foot">
+      <button onclick="closeModal('hodnoceni-modal')" class="btn btn-ghost">Přeskočit</button>
+      <button onclick="saveHodnoceni()" class="btn btn-green">Odeslat hodnocení ⭐</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ QR KÓD MODAL ══════════════════════════════ -->
+<div class="modal-overlay" id="qr-modal">
+  <div class="modal-box" style="max-width:340px;text-align:center">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h3 id="qr-modal-title">QR kód zakázky</h3>
+      <button onclick="closeModal('qr-modal')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">×</button>
+    </div>
+    <div id="qr-canvas-wrap" style="display:flex;justify-content:center;margin-bottom:14px">
+      <canvas id="qr-canvas" width="220" height="220" style="border:1px solid var(--border);border-radius:8px"></canvas>
+    </div>
+    <div id="qr-info" style="font-size:12px;color:var(--muted);margin-bottom:12px"></div>
+    <div class="modal-foot">
+      <button onclick="closeModal('qr-modal')" class="btn btn-ghost">Zavřít</button>
+      <button onclick="downloadQR()" class="btn btn-primary">📥 Stáhnout PNG</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ FAKTURAČNÍ PODKLAD MODAL ═══════════════════ -->
+<div class="modal-overlay" id="faktura-modal">
+  <div class="modal-box" style="max-width:620px;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h3>🧾 Fakturační podklad</h3>
+      <button onclick="closeModal('faktura-modal')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">×</button>
+    </div>
+    <div id="faktura-preview" style="border:1px solid var(--border);border-radius:8px;padding:20px;background:#fff;font-family:serif"></div>
+    <div class="modal-foot" style="margin-top:14px">
+      <button onclick="closeModal('faktura-modal')" class="btn btn-ghost">Zavřít</button>
+      <button onclick="printFaktura()" class="btn btn-primary" style="display:flex;align-items:center;gap:6px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Tisknout / PDF
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ AUDIT LOG MODAL ════════════════════════════ -->
+<div class="modal-overlay" id="audit-modal">
+  <div class="modal-box" style="max-width:500px;max-height:85vh;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-shrink:0">
+      <h3>📋 Log změn zakázky</h3>
+      <button onclick="closeModal('audit-modal')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">×</button>
+    </div>
+    <div id="audit-list" style="overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:6px"></div>
+  </div>
+</div>
+
+<!-- ══ SKLAD MODAL ═══════════════════════════════ -->
+<div class="modal-overlay" id="sklad-modal">
+  <div class="modal-box" style="max-width:460px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h3 id="sklad-modal-title">Přidat položku skladu</h3>
+      <button onclick="closeModal('sklad-modal')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">×</button>
+    </div>
+    <input type="hidden" id="sklad-edit-id">
+    <div class="fg2" style="margin-bottom:10px"><label>Název položky *</label><input id="sklad-nazev" placeholder="např. Filtr vzduchový HEPA"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div class="fg2"><label>Kategorie</label><input id="sklad-kat" placeholder="Filtry, Díly, Chladivo…" list="sklad-kat-list"><datalist id="sklad-kat-list"></datalist></div>
+      <div class="fg2"><label>Výrobce / Kód</label><input id="sklad-kod" placeholder="Part no."></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+      <div class="fg2"><label>Skladem (ks)</label><input type="number" id="sklad-qty" min="0" step="1" value="0"></div>
+      <div class="fg2"><label>Min. zásoby</label><input type="number" id="sklad-min" min="0" step="1" value="0"></div>
+      <div class="fg2"><label>Cena/ks (Kč)</label><input type="number" id="sklad-cena" min="0" step="0.01"></div>
+    </div>
+    <div class="fg2" style="margin-bottom:16px"><label>Poznámka</label><input id="sklad-pozn" placeholder="Volitelný popis…"></div>
+    <div class="modal-foot">
+      <button onclick="closeModal('sklad-modal')" class="btn btn-ghost">Zrušit</button>
+      <button onclick="saveSkladItem()" class="btn btn-green">Uložit</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ŠABLONA MODAL ═══════════════════════════════ -->
+<div class="modal-overlay" id="sablona-modal">
+  <div class="modal-box" style="max-width:540px;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h3 id="sablona-modal-title">Nová šablona zakázky</h3>
+      <button onclick="closeModal('sablona-modal')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">×</button>
+    </div>
+    <input type="hidden" id="sablona-edit-id">
+    <div class="fg2" style="margin-bottom:10px"><label>Název šablony *</label><input id="sab-nazev" placeholder="např. Roční servisní prohlídka klimatizace"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div class="fg2"><label>Typ zakázky</label><input id="sab-typ" placeholder="Servis, Montáž, Oprava…"></div>
+      <div class="fg2"><label>Firma</label>
+        <select id="sab-firma" class="filter-sel" style="width:100%">
+          <option value="aceuro">AC EURO a.s.</option>
+          <option value="progres">Progresklima CZ</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg2" style="margin-bottom:10px"><label>Popis prací (předvyplní se)</label>
+      <textarea id="sab-prace" rows="4" placeholder="Provedené servisní práce…" style="width:100%;resize:vertical"></textarea>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div class="fg2"><label>Zadání pro technika</label><textarea id="sab-zadani" rows="2" style="width:100%;resize:vertical" placeholder="Instrukce…"></textarea></div>
+      <div class="fg2"><label>Opakování (dny)</label><input type="number" id="sab-interval" min="1" placeholder="365 = ročně"></div>
+    </div>
+    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">Výchozí položky a ceny</div>
+    <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:14px">
+      <table style="width:100%;border-collapse:collapse" class="ceny-tbl">
+        <thead><tr><th style="text-align:left;padding:7px 10px;width:50%">Položka</th><th style="width:15%">Počet</th><th style="width:20%">Cena/ks</th><th style="width:15%">Celkem</th></tr></thead>
+        <tbody><tr style="border-bottom:1px solid var(--border)"><td><input type="text" id="sab-pol1" placeholder="Položka…" oninput="sabCalc()"></td><td><input type="number" id="sab-poc1" min="0" oninput="sabCalc()"></td><td><input type="number" id="sab-cen1" min="0" step="0.01" oninput="sabCalc()"></td><td><input id="sab-cel1" readonly style="background:var(--locked)"></td></tr><tr style="border-bottom:1px solid var(--border)"><td><input type="text" id="sab-pol2" placeholder="Položka…" oninput="sabCalc()"></td><td><input type="number" id="sab-poc2" min="0" oninput="sabCalc()"></td><td><input type="number" id="sab-cen2" min="0" step="0.01" oninput="sabCalc()"></td><td><input id="sab-cel2" readonly style="background:var(--locked)"></td></tr><tr style="border-bottom:1px solid var(--border)"><td><input type="text" id="sab-pol3" placeholder="Položka…" oninput="sabCalc()"></td><td><input type="number" id="sab-poc3" min="0" oninput="sabCalc()"></td><td><input type="number" id="sab-cen3" min="0" step="0.01" oninput="sabCalc()"></td><td><input id="sab-cel3" readonly style="background:var(--locked)"></td></tr><tr style="border-bottom:1px solid var(--border)"><td><input type="text" id="sab-pol4" placeholder="Položka…" oninput="sabCalc()"></td><td><input type="number" id="sab-poc4" min="0" oninput="sabCalc()"></td><td><input type="number" id="sab-cen4" min="0" step="0.01" oninput="sabCalc()"></td><td><input id="sab-cel4" readonly style="background:var(--locked)"></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-foot">
+      <button onclick="closeModal('sablona-modal')" class="btn btn-ghost">Zrušit</button>
+      <button onclick="saveSablona()" class="btn btn-green">Uložit šablonu</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ CENÍK MODAL ════════════════════════════════ -->
+<div class="modal-overlay" id="cenik-modal">
+  <div class="modal-box" style="max-width:460px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h3 id="cenik-modal-title">Přidat položku ceníku</h3>
+      <button onclick="closeModal('cenik-modal')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">×</button>
+    </div>
+    <input type="hidden" id="cenik-edit-id">
+    <div class="fg2" style="margin-bottom:10px"><label>Název položky *</label><input id="cenik-nazev" placeholder="např. Čistění výparníku"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div class="fg2"><label>Kategorie</label><input id="cenik-kat-inp" placeholder="Práce, Díly, Doprava…" list="cenik-kat-list"><datalist id="cenik-kat-list"></datalist></div>
+      <div class="fg2"><label>Jednotka</label><input id="cenik-jednotka" placeholder="ks, hod, km, m²…"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div class="fg2"><label>Cena bez DPH (Kč)</label><input type="number" id="cenik-cena" min="0" step="0.01" placeholder="0.00"></div>
+      <div class="fg2"><label>DPH %</label>
+        <select id="cenik-dph" class="filter-sel" style="width:100%">
+          <option value="21">21 %</option>
+          <option value="12">12 %</option>
+          <option value="0">0 %</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg2" style="margin-bottom:16px"><label>Poznámka</label><input id="cenik-pozn" placeholder="Volitelný popis…"></div>
+    <div class="modal-foot">
+      <button onclick="closeModal('cenik-modal')" class="btn btn-ghost">Zrušit</button>
+      <button onclick="saveCenikItem()" class="btn btn-green">Uložit</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SMS NASTAVENÍ MODAL ═════════════════════════ -->
+<div class="modal-overlay" id="sms-settings-modal">
+  <div class="modal-box" style="max-width:460px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <h3>📱 SMS notifikace zákazníkovi</h3>
+      <button onclick="closeModal('sms-settings-modal')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">×</button>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px;padding:10px 12px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px">
+      💡 Integrace s <strong>Twilio</strong> nebo <strong>BulkGate</strong> (česká SMS brána).
+      Zákazník dostane SMS "Váš technik je na cestě" při změně stavu.
+      <br><a href="https://www.bulkgate.com" target="_blank" style="color:#1d4ed8">bulkgate.com</a> — od 1 Kč/SMS.
+    </div>
+    <div class="fg2" style="margin-bottom:10px">
+      <label>Poskytovatel SMS</label>
+      <select id="sms-provider" class="filter-sel" style="width:100%" onchange="updateSmsProviderHelp()">
+        <option value="bulkgate">BulkGate (CZ)</option>
+        <option value="twilio">Twilio</option>
+        <option value="none">Vypnuto</option>
+      </select>
+    </div>
+    <div id="sms-fields">
+      <div class="fg2" style="margin-bottom:10px"><label id="sms-key-label">Application ID</label><input id="sms-app-id" placeholder=""></div>
+      <div class="fg2" style="margin-bottom:10px"><label id="sms-token-label">Application Token</label><input id="sms-token" placeholder="" type="password"></div>
+    </div>
+    <div class="fg2" style="margin-bottom:10px">
+      <label>Text SMS zprávy</label>
+      <textarea id="sms-text" rows="3" style="width:100%;resize:vertical" placeholder="Váš technik {technik} je na cestě. Zakázka: {nazev}">${"Váš technik {technik} je na cestě. Zakázka: {nazev}"}</textarea>
+      <div style="font-size:10px;color:var(--muted);margin-top:3px">Proměnné: {technik}, {nazev}, {cislo}, {termin}</div>
+    </div>
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);margin:12px 0 6px">Test SMS</div>
+    <div class="fg2" style="margin-bottom:14px">
+      <div style="display:flex;gap:8px">
+        <input id="sms-test-tel" placeholder="+420 777 888 999" style="flex:1">
+        <button onclick="testSms()" class="btn btn-primary" style="font-size:11px;flex-shrink:0">Odeslat test</button>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button onclick="closeModal('sms-settings-modal')" class="btn btn-ghost">Zrušit</button>
+      <button onclick="saveSmsSettings()" class="btn btn-green">Uložit</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MAPA TECHNIKŮ MODAL ═════════════════════════ -->
+<div class="modal-overlay" id="mapa-modal" style="z-index:1000">
+  <div class="modal-box" style="max-width:800px;width:95vw;max-height:90vh;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-shrink:0">
+      <h3>🗺 Mapa techniků a zakázek</h3>
+      <button onclick="closeModal('mapa-modal')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">×</button>
+    </div>
+    <div id="mapa-iframe-wrap" style="flex:1;border-radius:10px;overflow:hidden;min-height:400px;background:#f0f2f6;display:flex;align-items:center;justify-content:center">
+      <div id="mapa-content" style="width:100%;height:100%"></div>
+    </div>
+    <div id="mapa-legend" style="margin-top:10px;flex-shrink:0;font-size:11px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap"></div>
+  </div>
+</div>
+
+<!-- ══ IMPORT MODAL ══════════════════════════════ -->
+<div class="modal-overlay" id="import-modal">
+  <div class="modal-box" style="max-width:580px;max-height:88vh;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-shrink:0">
+      <h3>📥 Import zakázek z CSV/Excel</h3>
+      <button onclick="closeModal('import-modal')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">×</button>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px;padding:10px 12px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;flex-shrink:0">
+      💡 Nahrajte CSV nebo XLSX soubor. Systém automaticky rozpozná sloupce.
+      Povinné pole: <strong>Název</strong>. Volitelné: Zákazník, Technik, Termín (RRRR-MM-DD), Cena, Stav, IČO, Adresa, Popis prací.
+    </div>
+    <div id="import-dropzone" style="border:2px dashed var(--border);border-radius:10px;padding:30px;text-align:center;cursor:pointer;margin-bottom:12px;flex-shrink:0;transition:border-color .2s"
+      onclick="document.getElementById('import-file-inp').click()"
+      ondragover="event.preventDefault();this.style.borderColor='var(--green)'"
+      ondragleave="this.style.borderColor='var(--border)'"
+      ondrop="event.preventDefault();this.style.borderColor='var(--border)';handleImportDrop(event)">
+      <div style="font-size:28px;margin-bottom:8px">📂</div>
+      <div style="font-size:13px;font-weight:600;color:var(--navy)">Přetáhněte CSV nebo XLSX soubor sem</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">nebo klikněte pro výběr souboru</div>
+    </div>
+    <input type="file" id="import-file-inp" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleImportFile(this)">
+    <div id="import-preview" style="flex:1;overflow-y:auto;display:none">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:6px">
+        Náhled importu — <span id="import-preview-count"></span>
+      </div>
+      <div id="import-preview-tbl" style="overflow-x:auto"></div>
+    </div>
+    <div class="modal-foot" style="flex-shrink:0;margin-top:12px">
+      <button onclick="closeModal('import-modal')" class="btn btn-ghost">Zrušit</button>
+      <button id="import-confirm-btn" onclick="confirmImport()" class="btn btn-green" style="display:none">
+        📥 Importovat zakázky
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ EMAILJS / SMS NASTAVENÍ MODAL ══════════════ -->
+<div class="modal-overlay" id="notif-settings-modal">
+  <div class="modal-box" style="max-width:480px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <h3>📧 Nastavení notifikací</h3>
+      <button onclick="closeModal('notif-settings-modal')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">×</button>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px;padding:10px 12px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px">
+      💡 Pro e-mailové notifikace zadejte EmailJS klíče. Technik dostane e-mail při přiřazení zakázky.
+      <a href="https://emailjs.com" target="_blank" style="color:#1d4ed8">emailjs.com</a> (zdarma do 200 e-mailů/měsíc).
+    </div>
+    <div class="fg2" style="margin-bottom:10px">
+      <label>EmailJS Service ID</label>
+      <input id="emailjs-service" placeholder="service_xxxxxxx" value="">
+    </div>
+    <div class="fg2" style="margin-bottom:10px">
+      <label>EmailJS Template ID</label>
+      <input id="emailjs-template" placeholder="template_xxxxxxx" value="">
+    </div>
+    <div class="fg2" style="margin-bottom:10px">
+      <label>EmailJS Public Key</label>
+      <input id="emailjs-pubkey" placeholder="xxxxxxxxxxxxxxx" value="">
+    </div>
+    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin:12px 0 6px">Test notifikace</div>
+    <div class="fg2" style="margin-bottom:14px">
+      <label>Testovací e-mail</label>
+      <div style="display:flex;gap:8px">
+        <input id="emailjs-test-addr" placeholder="technik@firma.cz" style="flex:1">
+        <button onclick="testEmailNotif()" class="btn btn-primary" style="font-size:11px;flex-shrink:0">Odeslat test</button>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button onclick="closeModal('notif-settings-modal')" class="btn btn-ghost">Zrušit</button>
+      <button onclick="saveNotifSettings()" class="btn btn-green">Uložit nastavení</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ PORTÁL ZÁKAZNÍKA ══════════════════════════════════ -->
+<div id="app-portal" style="display:none;min-height:100vh;background:#eef1f7;font-family:'Inter',sans-serif">
+  <!-- Hlavička portálu -->
+  <div style="background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;padding:16px 20px">
+    <div style="display:flex;align-items:center;gap:12px;max-width:600px;margin:0 auto">
+      <div id="portal-logo" style="font-size:22px;font-weight:800">🔧</div>
+      <div>
+        <div id="portal-firma-name" style="font-size:15px;font-weight:700">Servisní portál</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.6)">Sledování stavu zakázky</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Přihlášení portálu (přes token/kód) -->
+  <div id="portal-login" style="max-width:400px;margin:40px auto;padding:0 20px">
+    <div style="background:#fff;border-radius:14px;padding:28px;box-shadow:0 4px 24px rgba(0,0,0,.08)">
+      <h2 style="font-size:18px;font-weight:700;color:var(--navy);margin:0 0 6px">Sledování zakázky</h2>
+      <p style="font-size:13px;color:var(--muted);margin:0 0 20px">Zadejte číslo zakázky a přístupový kód který jste obdrželi od technika.</p>
+      <div class="fg2" style="margin-bottom:12px">
+        <label>Číslo zakázky</label>
+        <input id="portal-cislo" placeholder="např. ZAK-2025-001" style="width:100%;box-sizing:border-box">
+      </div>
+      <div class="fg2" style="margin-bottom:16px">
+        <label>Přístupový kód</label>
+        <input id="portal-kod" placeholder="4místný kód" maxlength="6" style="width:100%;box-sizing:border-box;letter-spacing:4px;font-size:18px;text-align:center">
+      </div>
+      <button onclick="portalLogin()" class="btn btn-green" style="width:100%;justify-content:center">
+        Zobrazit zakázku
+      </button>
+      <div id="portal-login-err" style="display:none;margin-top:10px;font-size:12px;color:var(--err);text-align:center"></div>
+    </div>
+  </div>
+
+  <!-- Obsah portálu -->
+  <div id="portal-content" style="display:none;max-width:600px;margin:0 auto;padding:20px">
+    <!-- Stav zakázky -->
+    <div style="background:#fff;border-radius:14px;padding:20px;margin-bottom:14px;box-shadow:0 2px 12px rgba(0,0,0,.06)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div>
+          <div id="portal-nazev" style="font-size:17px;font-weight:800;color:var(--navy)"></div>
+          <div id="portal-meta" style="font-size:12px;color:var(--muted);margin-top:2px"></div>
+        </div>
+        <div id="portal-badge"></div>
+      </div>
+      <!-- Progress bar stavů -->
+      <div id="portal-progress" style="margin-bottom:14px"></div>
+      <!-- Detaily -->
+      <div id="portal-details" style="font-size:13px;color:var(--text);line-height:1.8"></div>
+    </div>
+    <!-- Servisní práce -->
+    <div id="portal-prace-wrap" style="display:none;background:#fff;border-radius:14px;padding:20px;margin-bottom:14px;box-shadow:0 2px 12px rgba(0,0,0,.06)">
+      <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px">🔧 Provedené práce</div>
+      <div id="portal-prace" style="font-size:13px;color:var(--text);white-space:pre-wrap"></div>
+    </div>
+    <!-- Fotodokumentace -->
+    <div id="portal-foto-wrap" style="display:none;background:#fff;border-radius:14px;padding:20px;margin-bottom:14px;box-shadow:0 2px 12px rgba(0,0,0,.06)">
+      <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:10px">📷 Fotodokumentace</div>
+      <div id="portal-foto" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px"></div>
+    </div>
+    <!-- Kontakt -->
+    <div style="background:#fff;border-radius:14px;padding:16px 20px;box-shadow:0 2px 12px rgba(0,0,0,.06);text-align:center">
+      <div style="font-size:12px;color:var(--muted)">Dotazy ke zakázce?</div>
+      <div id="portal-kontakt" style="font-size:13px;font-weight:600;color:var(--navy);margin-top:4px"></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- LIGHTBOX -->
+<div id="lightbox" onclick="if(event.target===this)closeLightbox()">
+  <button id="lightbox-close" onclick="closeLightbox()" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,.15);border:none;color:#fff;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10">✕</button>
+  <button id="lightbox-download" onclick="downloadLightboxPhoto()" style="position:absolute;top:16px;right:60px;background:rgba(255,255,255,.15);border:none;color:#fff;width:36px;height:36px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10" title="Stáhnout">⬇</button>
+  <button id="lightbox-prev" onclick="lightboxNav(-1)" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;width:44px;height:44px;border-radius:50%;font-size:22px;cursor:pointer;z-index:10">‹</button>
+  <button id="lightbox-next" onclick="lightboxNav(1)" style="position:absolute;right:16px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;width:44px;height:44px;border-radius:50%;font-size:22px;cursor:pointer;z-index:10">›</button>
+  <div style="display:flex;flex-direction:column;align-items:center;max-width:90vw">
+    <img id="lightbox-img" src="" alt="" style="max-width:100%;max-height:80vh;border-radius:8px;object-fit:contain">
+    <div id="lightbox-caption" style="margin-top:12px;color:#fff;font-size:14px;text-align:center;max-width:600px;background:rgba(0,0,0,.5);padding:8px 16px;border-radius:8px;display:none"></div>
+  </div>
+</div>
+
+<!-- ASSIGN MODAL -->
+<div class="modal-overlay" id="assign-modal">
+  <div class="modal-box" style="max-width:480px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h3 style="margin:0">Přiřadit práci technikovi</h3>
+      <button onclick="closeModal('assign-modal')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">×</button>
+    </div>
+    <div class="form-inp" style="margin-bottom:12px">
+      <label>Technik *</label>
+      <select id="assign-sel" class="filter-sel" style="width:100%;padding:9px 12px;font-size:13px"></select>
+    </div>
+    <div class="form-inp" style="margin-bottom:12px">
+      <label>Termín provedení</label>
+      <input type="date" id="assign-termin" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">
+    </div>
+    <div class="form-inp" style="margin-bottom:16px">
+      <label>Zadání práce <span style="font-weight:400;color:var(--muted)">(instrukce pro technika)</span></label>
+      <textarea id="assign-zadani" rows="5" placeholder="Popište co má technik provést, jaké nástroje vzít, na co si dát pozor…"
+        style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:12.5px;font-family:inherit;resize:vertical;line-height:1.5;color:var(--text)"></textarea>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:14px;padding:8px 10px;background:var(--blue2);border-radius:6px">
+      💡 Technik uvidí toto zadání na začátku vyplňování servisního listu.
+    </div>
+    <div class="modal-foot" style="justify-content:space-between">
+      <button class="btn btn-ghost" onclick="closeModal('assign-modal')">Zrušit</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" onclick="downloadZakazkaSouhrn(_assignId)" style="display:flex;align-items:center;gap:5px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Souhrn pro technika
+        </button>
+        <button class="btn btn-green" onclick="doAssign()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Přiřadit
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div id="modal-add-zakaz" style="display:none;position:fixed;inset:0;background:rgba(15,31,61,.55);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:12px;padding:24px 28px;width:460px;max-width:95vw;box-shadow:0 20px 60px rgba(15,31,61,.3)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+      <h3 style="font-size:16px;font-weight:700;color:var(--n1)">Přidat zakázku</h3>
+      <button onclick="closeAddZakazkaModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">×</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div>
+        <label style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px">Název zakázky *</label>
+        <input id="az-nazev" placeholder="např. Klimatizace Brno — kancelář" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px">Číslo servisu</label>
+          <input id="az-cislo" placeholder="2024-001" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit">
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px">Zákazník (IČO nebo název)</label>
+          <div style="position:relative">
+            <input id="az-zakaznik" placeholder="Název firmy nebo IČO…" autocomplete="off"
+              style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit"
+              oninput="kAresDebounce(this.value)">
+            <div id="az-ares-loading" style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--muted)">🔍</div>
+            <div id="az-ares-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid var(--border);border-radius:8px;box-shadow:0 4px 16px rgba(15,31,61,.12);z-index:300;max-height:220px;overflow-y:auto;margin-top:2px"></div>
+          </div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">
+        <div>
+          <label style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px">Adresa zákazníka</label>
+          <input id="az-adresa" placeholder="Ulice, město, PSČ" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px">IČO / DIČ</label>
+          <div style="display:flex;gap:6px">
+            <input id="az-ico" placeholder="IČO" style="flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">
+            <input id="az-dic" placeholder="DIČ" style="flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:10px">
+        <label style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px">Servis provádí</label>
+        <div style="display:flex;gap:8px">
+          <button type="button" id="kaz-btn-aceuro" onclick="kSetFirma('aceuro')"
+            style="flex:1;padding:9px 8px;border-radius:8px;border:2px solid #6abf3e;background:#f0fff4;font-size:12px;font-weight:700;cursor:pointer;color:#0f1f3d;display:flex;align-items:center;justify-content:center;gap:5px">
+            <span style="width:8px;height:8px;border-radius:50%;background:#6abf3e;display:inline-block"></span>AC EURO a.s.
+          </button>
+          <button type="button" id="kaz-btn-progres" onclick="kSetFirma('progres')"
+            style="flex:1;padding:9px 8px;border-radius:8px;border:2px solid #d0d8e8;background:#fff;font-size:12px;font-weight:700;cursor:pointer;color:#6b7a99;display:flex;align-items:center;justify-content:center;gap:5px">
+            <span style="width:8px;height:8px;border-radius:50%;background:#1e90ff;display:inline-block"></span>Progresklima CZ
+          </button>
+        </div>
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:4px">Uložit do seznamu zakázek</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+          <input type="checkbox" id="az-save-template" checked style="width:16px;height:16px;accent-color:var(--blue)">
+          <span>Přidat tuto zakázku do výběru pro techniky</span>
+        </label>
+      </div>
+      <div id="az-err" style="display:none;font-size:12px;color:#b91c1c;background:#fef2f2;padding:8px 12px;border-radius:6px"></div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px">
+      <button onclick="closeAddZakazkaModal()" style="padding:10px 18px;background:#f4f6fa;color:var(--n1);border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">Zrušit</button>
+      <button id="az-btn" onclick="submitAddZakazka()" style="padding:10px 22px;background:var(--green2);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">Vytvořit zakázku</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PROTOKOL WIZARD ═══════════════════════════════════════════ -->
+<div class="modal-overlay" id="protocol-wizard-modal">
+  <div class="modal-box" style="max-width:600px;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <h3 id="pw-title">📋 Generovat protokol</h3>
+      <button onclick="closeModal('protocol-wizard-modal')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted)">×</button>
+    </div>
+    <input type="hidden" id="pw-zakaz-id">
+    <div id="pw-info" style="background:#eff6ff;border:1px solid #93c5fd;border-radius:8px;padding:10px 14px;font-size:12px;margin-bottom:14px;color:#1e3a5f"></div>
+    <div class="fg2" style="margin-bottom:12px">
+      <label>Typ protokolu</label>
+      <select id="pw-typ" onchange="pwOnTypChange()" style="width:100%;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:var(--card)">
+        <option value="kaufland_rocni">Kaufland — Roční revize (05A)</option>
+        <option value="kaufland_pulrocni">Kaufland — Půlroční revize (05B)</option>
+        <option value="minobr">Ministerstvo obrany — Zápis o údržbě KJ</option>
+      </select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div class="fg2"><label>Datum</label><input type="date" id="pw-datum"></div>
+      <div class="fg2" id="pw-smlouva-row"><label id="pw-smlouva-label">Číslo smlouvy</label><input id="pw-smlouva" placeholder=""></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div class="fg2"><label>Zahájení [hod]</label><input type="time" id="pw-zahajeni"></div>
+      <div class="fg2"><label>Ukončení [hod]</label><input type="time" id="pw-ukonceni"></div>
+    </div>
+    <div id="pw-kaufland-fields">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div class="fg2"><label>Objekt (filiálka)</label><input id="pw-objekt" placeholder="Kaufland Praha Letňany"></div>
+        <div class="fg2"><label>Domovní technik</label><input id="pw-domovni-tech" placeholder="Jméno DT zákazníka"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div class="fg2"><label>Typ zařízení</label><input id="pw-typ-zarizeni" placeholder="Chiller Carrier 30RB"></div>
+        <div class="fg2"><label>Výrobní číslo</label><input id="pw-vyrobni-cislo" placeholder="SN123456"></div>
+      </div>
+      <div class="fg2" style="margin-bottom:12px"><label>Rok výroby</label><input id="pw-rok-vyroby" placeholder="2018" style="max-width:120px"></div>
+      <div style="background:var(--bg);border-radius:8px;padding:12px;margin-bottom:10px">
+        <div style="font-weight:700;font-size:12px;margin-bottom:8px;color:var(--navy)">A — Provozní připravenost</div>
+        <div style="display:flex;gap:16px">
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="radio" name="pw-provoz" value="funkční"> Funkční</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="radio" name="pw-provoz" value="nefunkční"> Nefunkční</label>
+        </div>
+      </div>
+      <div style="background:var(--bg);border-radius:8px;padding:12px;margin-bottom:10px">
+        <div style="font-weight:700;font-size:12px;margin-bottom:8px;color:var(--navy)">B — Revizní kniha</div>
+        <div style="display:flex;gap:16px">
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="radio" name="pw-revkniha" value="k dispozici"> K dispozici</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="radio" name="pw-revkniha" value="není k dispozici"> Není k dispozici</label>
+        </div>
+      </div>
+      <div id="pw-dynamic-sections"></div>
+      <div style="background:var(--bg);border-radius:8px;padding:12px;margin-bottom:10px">
+        <div style="font-weight:700;font-size:12px;margin-bottom:8px;color:var(--navy)" id="pw-stav-label">D — Stav zařízení</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="radio" name="pw-stav" value="zelena"> 🟢 Zelená — zařízení je plně funkční</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="radio" name="pw-stav" value="zluta"> 🟡 Žlutá — vyhovující s nedostatky, následuje nabídka</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer"><input type="radio" name="pw-stav" value="cervena"> 🔴 Červená — zařízení nevyhovující dle Vyhl.246/2001 Sb.</label>
+        </div>
+      </div>
+    </div>
+    <div id="pw-minobr-fields" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div class="fg2"><label>Evidenční číslo</label><input id="pw-ev-cislo" placeholder="POZ-913401-2026"></div>
+        <div class="fg2"><label>Vojenský útvar</label><input id="pw-voj-utvar" placeholder="VÚ 3255"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div class="fg2"><label>Místo provedení</label><input id="pw-misto-proven" placeholder="Praha / Olomouc"></div>
+        <div class="fg2"><label>Budova / místnost</label><input id="pw-budova" placeholder="B004/1NP/139"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div class="fg2"><label>Typ klimatizační jednotky</label><input id="pw-typ-kj" placeholder="ATREA DUPLEX"></div>
+        <div class="fg2"><label>Výr. číslo vnitřní / vnější</label><input id="pw-sn-kj" placeholder="227387 / 227387"></div>
+      </div>
+      <div class="fg2" style="margin-bottom:12px"><label>Chladivo</label><input id="pw-chladivo" placeholder="R410A"></div>
+      <div style="background:var(--bg);border-radius:8px;padding:12px;margin-bottom:10px;font-size:12px">
+        <div style="font-weight:700;margin-bottom:8px;color:var(--navy)">Provedené práce — zaškrtněte provedené:</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" id="pw-minobr-checks"></div>
+      </div>
+    </div>
+    <div class="fg2" style="margin-bottom:14px">
+      <label>Závěr / Popis zjištěných skutečností a závad</label>
+      <textarea id="pw-zaver" rows="4" style="resize:vertical" placeholder="Popis provedené práce, zjištěné závady, doporučení…"></textarea>
+    </div>
+    <div class="modal-foot">
+      <button onclick="closeModal('protocol-wizard-modal')" class="btn btn-ghost">Zrušit</button>
+      <button onclick="generateProtocol()" class="btn btn-green" style="font-size:13px;font-weight:700">📄 Generovat protokol</button>
+    </div>
+  </div>
+</div>
+
+<!-- html2pdf.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js"></script>
+
+<!-- Firebase compat layer -->
+<script src="/firebase-compat.js"></script>
+
+<!-- PDF helper -->
+<script src="/js/pdf-helper.js"></script>
+
+<!-- App modules -->
+<script src="/js/app-technik.js"></script>
+<script src="/js/app-kancelar.js"></script>
+<script src="/js/app-routing.js"></script>
+<script src="/js/app-servisni-list.js"></script>
+<script src="/js/app-funkce1.js"></script>
+<script src="/js/app-funkce2.js"></script>
+<script src="/js/app-funkce3.js"></script>
+<script src="/js/app-funkce4.js"></script>
+<script src="/js/app-funkce5.js"></script>
+<script src="/js/app-podpis.js"></script>
+<script src="/js/app-funkce6.js"></script>
+<script src="/js/app-extra.js"></script>
+
+<div id="print-container" style="display:none;position:fixed;left:0;top:0;width:100%"></div>
+</body>
+</html>

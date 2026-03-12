@@ -82,6 +82,8 @@ db.exec(`
     sig2        TEXT NOT NULL DEFAULT '',
     sd1         TEXT NOT NULL DEFAULT '',
     sd2         TEXT NOT NULL DEFAULT '',
+    sig1name    TEXT NOT NULL DEFAULT '',
+    sig2name    TEXT NOT NULL DEFAULT '',
     photos      TEXT NOT NULL DEFAULT '[]',
     stav        TEXT NOT NULL DEFAULT 'nová',
     source      TEXT NOT NULL DEFAULT 'kancelar',
@@ -334,8 +336,8 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 
-// Statické soubory — firebase-compat.js a ostatní JS soubory
-app.use(express.static(__dirname));
+// Statické soubory — public/ (CSS, JS, obrázky, index.html, firebase-compat.js)
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Statické soubory — uploads (fotky)
 app.use('/uploads', express.static(UPLOADS_DIR));
@@ -361,10 +363,7 @@ const upload = multer({
   }
 });
 
-// ── Frontend ───────────────────────────────────────────────────────
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
+// ── Frontend — express.static automaticky servíruje public/index.html ──
 
 // ── AUTH ROUTES ────────────────────────────────────────────────────
 
